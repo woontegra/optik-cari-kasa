@@ -57,7 +57,11 @@ export function registerReportHandlers(ipcMain: IpcMain, dialogModule: typeof di
     guarded(() => getService().getPrescriptionMedulaReport(filters))
   );
   ipcMain.handle('reports:getEdonusumReport', (_event, filters?: import('../types/invoiceDraft').InvoiceDraftReportFilters) =>
-    guarded(() => new InvoiceDraftService(getDatabase()!).getReport(filters))
+    guarded(() => {
+      const db = getDatabase();
+      if (!db) throw new Error('Veritabanı başlatılamadı');
+      return new InvoiceDraftService(db).getReport(filters);
+    })
   );
 
   ipcMain.handle('reports:getReturnCancelReport', (_event, filters?: ReturnCancelReportFilter) =>

@@ -273,7 +273,7 @@ export class SgkInvoiceService {
     const items = (detail.items as Array<Record<string, unknown>>) || [];
 
     const companyHeader = company
-      ? `<h2>${company.company_name || 'Firma'}</h2><p>${company.address || ''} ${company.phone || ''}</p>`
+      ? `<h2>${company.name || 'Firma'}</h2><p>${company.address || ''} ${company.phone || ''}</p>`
       : '';
 
     const rows = items

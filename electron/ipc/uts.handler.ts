@@ -46,7 +46,7 @@ export function registerUtsHandlers(ipcMain: IpcMain, dialogModule: typeof dialo
 
     try {
 
-      requirePermission(PERMISSIONS.MEDULA_VIEW);
+      requirePermission(PERMISSIONS.UTS_VIEW);
 
       return success(getService().listRecords(filters));
 
@@ -68,7 +68,7 @@ export function registerUtsHandlers(ipcMain: IpcMain, dialogModule: typeof dialo
 
       try {
 
-        requirePermission(PERMISSIONS.MEDULA_EXPORT);
+        requirePermission(PERMISSIONS.UTS_EDIT);
 
         const result = getService().updateStatus(payload.productId, payload.status, payload.note);
 
@@ -90,7 +90,7 @@ export function registerUtsHandlers(ipcMain: IpcMain, dialogModule: typeof dialo
 
     try {
 
-      requirePermission(PERMISSIONS.MEDULA_EXPORT);
+      requirePermission(PERMISSIONS.UTS_EXPORT);
 
       const result = await dialogModule.showSaveDialog({
 

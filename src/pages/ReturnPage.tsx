@@ -13,6 +13,7 @@ import type {
 } from '@/types/returns';
 import { REFUND_METHODS, RETURN_TYPES } from '@/types/returns';
 import '@/components/products/ProductForm.css';
+import PageTitleBar from '@/components/layout/PageTitleBar';
 
 interface ReturnLineSelection {
   saleItemId: number;
@@ -251,10 +252,9 @@ export default function ReturnPage() {
 
   return (
     <div className="page-content">
-      <div className="page-title-bar">
-        <h2 className="page-title">İade / Değişim</h2>
+      <PageTitleBar title="İade / Değişim">
         <button className="btn" onClick={loadReturns}>Yenile</button>
-      </div>
+      </PageTitleBar>
 
       {toast && <Toast message={toast} onDone={() => setToast('')} />}
       {error && <div className="alert alert-error" style={{ marginBottom: 8 }}>{error}</div>}

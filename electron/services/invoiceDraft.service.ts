@@ -69,7 +69,7 @@ export class InvoiceDraftService {
     if (ctx.totalAmount <= 0) errors.push('Toplam tutar geçersiz');
 
     const issuerTax = String(company.tax_number || settings.tax_no || '').trim();
-    const issuerTitle = String(company.company_name || settings.company_title || '').trim();
+    const issuerTitle = String(company.name || settings.company_title || '').trim();
     if (!issuerTax) warnings.push('Firma VKN/TCKN ayarı eksik');
     if (!issuerTitle) warnings.push('Firma unvanı ayarı eksik');
 

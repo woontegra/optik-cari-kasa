@@ -8,7 +8,7 @@ import type { CustomerCategory } from '@/types/customerTracking';
 import CustomerForm from '@/components/customers/CustomerForm';
 import CustomerDetail from '@/components/customers/CustomerDetail';
 import CommunicationPrepModal from '@/components/customers/CommunicationPrepModal';
-import '@/components/products/ProductForm.css';
+import PageTitleBar from '@/components/layout/PageTitleBar';
 
 type FormMode = 'create' | 'edit' | 'view' | null;
 
@@ -164,9 +164,7 @@ export default function CustomerPage() {
 
   return (
     <div className="page-content">
-      <div className="page-title-bar">
-        <h2 className="page-title">Müşteri / Hasta Kartları</h2>
-      </div>
+      <PageTitleBar title="Müşteri / Hasta Kartları" />
 
       {toast && <Toast message={toast} onDone={() => setToast('')} />}
 

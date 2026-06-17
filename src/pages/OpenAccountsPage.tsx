@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { ipc } from '@/services/ipc';
 import { formatCurrency } from '@/utils/format';
 import { PERMISSIONS } from '@/types/auth';
+import PageTitleBar from '@/components/layout/PageTitleBar';
 
 type Tab = 'customers' | 'suppliers';
 
@@ -38,10 +39,9 @@ export default function OpenAccountsPage() {
 
   return (
     <div className="page-content">
-      <div className="page-title-bar">
-        <h2 className="page-title">Açık Hesaplar</h2>
+      <PageTitleBar title="Açık Hesaplar">
         <button type="button" className="btn" onClick={load}>Yenile</button>
-      </div>
+      </PageTitleBar>
 
       <div className="tab-bar">
         <button type="button" className={`tab-btn ${tab === 'customers' ? 'active' : ''}`} onClick={() => setTab('customers')}>Müşteri Açık Hesapları</button>

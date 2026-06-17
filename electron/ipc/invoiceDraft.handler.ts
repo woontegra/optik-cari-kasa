@@ -238,7 +238,6 @@ export function registerInvoiceDraftHandlers(ipcMain: IpcMain, dialogModule: typ
 
   ipcMain.handle('einvoiceSettings:update', (_event, input: EinvoiceSettingsInput) => {
     try {
-      requirePermission(PERMISSIONS.EINVOICE_EDIT);
       const session = requirePermission(PERMISSIONS.EINVOICE_EDIT);
       const result = settingsService().update(input);
       auditAction(session.id, 'E-Dönüşüm Ayarları Güncellendi', 'E-Dönüşüm', String(input.provider_name || ''), {

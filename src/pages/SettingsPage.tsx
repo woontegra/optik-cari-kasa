@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { AUTO_LOCK_OPTIONS } from '@/types/auth';
 import { formatDateTime } from '@/utils/format';
 import { sanitizeBarcode } from '@/utils/barcode';
+import PageTitleBar from '@/components/layout/PageTitleBar';
 import type { LabelSettings, LabelTemplate } from '@/types/importExport';
 import { LABEL_TEMPLATE_LABELS } from '@/types/importExport';
 
@@ -89,9 +90,7 @@ export default function SettingsPage() {
 
   return (
     <div className="page-content">
-      <div className="page-title-bar">
-        <h2 className="page-title">Ayarlar</h2>
-      </div>
+      <PageTitleBar title="Ayarlar" />
       {toast && <div className="toast-success">{toast}</div>}
 
       <div className="tab-bar" style={{ marginBottom: 8 }}>

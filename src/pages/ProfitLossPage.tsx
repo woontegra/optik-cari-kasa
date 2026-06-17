@@ -3,6 +3,7 @@ import { ipc } from '@/services/ipc';
 import { formatCurrency } from '@/utils/format';
 import { openPrintPreview } from '@/utils/print';
 import type { ProfitLossFilter } from '@/types/finance';
+import PageTitleBar from '@/components/layout/PageTitleBar';
 
 const today = new Date().toISOString().slice(0, 10);
 const monthAgo = () => {
@@ -86,10 +87,9 @@ export default function ProfitLossPage() {
 
   return (
     <div className="page-content">
-      <div className="page-title-bar">
-        <h2 className="page-title">Kâr-Zarar</h2>
+      <PageTitleBar title="Kâr-Zarar">
         <button type="button" className="btn" onClick={load} disabled={loading}>Yenile</button>
-      </div>
+      </PageTitleBar>
 
       <div className="toolbar" style={{ marginBottom: 8, flexWrap: 'wrap', gap: 6 }}>
         <button type="button" className={`btn btn-sm ${filter.period === 'daily' ? 'btn-primary' : ''}`} onClick={() => applyPeriod('daily')}>Günlük</button>

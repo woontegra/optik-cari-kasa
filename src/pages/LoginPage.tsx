@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { getRememberedUsername, setRememberedUsername } from '@/types/auth';
 import { useAuth } from '@/context/AuthContext';
+import logoImg from '@/assets/woontegra-optik-logo.png';
 import '@/styles/login.css';
 
 export default function LoginPage() {
@@ -27,9 +28,9 @@ export default function LoginPage() {
 
   return (
     <div className="login-page">
-      <div className="login-panel">
+      <div className="login-panel login-panel--wide">
         <div className="login-brand">
-          <div className="login-title">Woontegra Optik Desktop</div>
+          <img src={logoImg} alt="Woontegra Optik" className="login-logo" />
           <div className="login-sub">Kullanıcı Girişi</div>
         </div>
         <form onSubmit={handleSubmit} className="login-form">

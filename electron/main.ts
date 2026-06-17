@@ -1,4 +1,5 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, nativeImage } from 'electron';
+import fs from 'fs';
 import path from 'path';
 import { initDatabase, getDatabase } from './database';
 import { registerIpcHandlers } from './ipc';
@@ -8,6 +9,30 @@ import { logError, logInfo, getLogsDirectory } from './services/logger.service';
 let mainWindow: BrowserWindow | null = null;
 
 const isDev = !app.isPackaged;
+const APP_ID = 'com.woontegra.optikdesktop';
+
+if (process.platform === 'win32') {
+  app.setAppUserModelId(APP_ID);
+}
+
+function resolveAppIcon(): Electron.NativeImage | undefined {
+  const candidates = [
+    path.join(__dirname, 'icon.ico'),
+    path.join(__dirname, '../build/icon.ico'),
+    path.join(process.cwd(), 'build', 'icon.ico'),
+    path.join(app.getAppPath(), 'build', 'icon.ico'),
+    path.join(process.resourcesPath, 'build', 'icon.ico'),
+  ];
+  for (const candidate of candidates) {
+    if (!fs.existsSync(candidate)) continue;
+    const image = nativeImage.createFromPath(candidate);
+    if (!image.isEmpty()) {
+      logInfo('Uygulama', `İkon yüklendi: ${candidate}`);
+      return image;
+    }
+  }
+  return undefined;
+}
 
 function setupErrorHandlers(): void {
   getLogsDirectory();
@@ -23,6 +48,11 @@ function setupErrorHandlers(): void {
 }
 
 function createWindow(): void {
+  const icon = resolveAppIcon();
+  if (!icon) {
+    logError('Uygulama', 'Uygulama ikonu bulunamadı (build/icon.ico)');
+  }
+
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
@@ -30,6 +60,7 @@ function createWindow(): void {
     minHeight: 600,
     title: 'Woontegra Optik Desktop',
     show: false,
+    ...(icon ? { icon } : {}),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,

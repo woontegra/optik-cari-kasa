@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ipc } from '@/services/ipc';
 import { OPTICAL_LOOKUP_TYPES } from '@/types/opticalLookup';
+import PageTitleBar from '@/components/layout/PageTitleBar';
 
 type Tab = 'groups' | 'subgroups' | 'brands' | 'models' | 'colors' | 'lens' | 'frame';
 
@@ -108,9 +109,7 @@ export default function OptikTanimlarPage() {
 
   return (
     <div className="page-content">
-      <div className="page-title-bar">
-        <h2 className="page-title">Optik Tanımlar</h2>
-      </div>
+      <PageTitleBar title="Optik Tanımlar" />
       {toast && <div className="toast-success">{toast}</div>}
       {error && <div className="alert alert-error">{error}</div>}
 

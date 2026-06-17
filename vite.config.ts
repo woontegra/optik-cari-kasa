@@ -1,7 +1,16 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import electron from 'vite-plugin-electron/simple';
+import { copyFileSync, existsSync } from 'fs';
 import path from 'path';
+
+function copyAppIcon() {
+  const src = path.resolve(__dirname, 'build/icon.ico');
+  const dest = path.resolve(__dirname, 'dist-electron/icon.ico');
+  if (existsSync(src)) {
+    copyFileSync(src, dest);
+  }
+}
 
 export default defineConfig({
   plugins: [
@@ -10,6 +19,12 @@ export default defineConfig({
       main: {
         entry: 'electron/main.ts',
         vite: {
+          plugins: [
+            {
+              name: 'copy-app-icon',
+              closeBundle: copyAppIcon,
+            },
+          ],
           build: {
             outDir: 'dist-electron',
             rollupOptions: {

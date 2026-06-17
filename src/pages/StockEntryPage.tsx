@@ -9,7 +9,7 @@ import { productToEntryLine } from '@/types/stockEntry';
 import QuickProductModal from '@/components/stock/QuickProductModal';
 import LabelPrintModal from '@/components/products/LabelPrintModal';
 import { openPrintPreview } from '@/utils/print';
-import '@/components/products/ProductForm.css';
+import PageTitleBar from '@/components/layout/PageTitleBar';
 
 type Tab = 'entry' | 'history';
 
@@ -248,9 +248,7 @@ export default function StockEntryPage() {
 
   return (
     <div className="page-content">
-      <div className="page-title-bar">
-        <h2 className="page-title">Mal Kabul / Barkodlu Stok Giriş</h2>
-      </div>
+      <PageTitleBar title="Mal Kabul / Barkodlu Stok Giriş" />
 
       <div className="tab-bar" style={{ marginBottom: 8 }}>
         <button type="button" className={`tab-btn${tab === 'entry' ? ' active' : ''}`} onClick={() => setTab('entry')}>

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ipc } from '@/services/ipc';
 import { PERMISSION_LABELS, USER_ROLES, type Permission, type UserRole } from '@/types/auth';
+import PageTitleBar from '@/components/layout/PageTitleBar';
 import '@/components/products/ProductForm.css';
 
 interface UserListItem {
@@ -135,10 +136,9 @@ export default function UsersPage() {
 
   return (
     <div className="page-content">
-      <div className="page-title-bar">
-        <h2 className="page-title">Kullanıcılar</h2>
+      <PageTitleBar title="Kullanıcılar">
         <button className="btn btn-primary" onClick={openCreate}>Yeni Kullanıcı</button>
-      </div>
+      </PageTitleBar>
       {error && <div className="alert alert-error">{error}</div>}
       {toast && <div className="toast-success" onAnimationEnd={() => setToast('')}>{toast}</div>}
 

@@ -5,6 +5,7 @@ import { formatCurrency } from '@/utils/format';
 import { PERMISSIONS } from '@/types/auth';
 import type { BankAccountInput, PosAccountInput } from '@/types/finance';
 import { BANK_MOVEMENT_TYPES } from '@/types/finance';
+import PageTitleBar from '@/components/layout/PageTitleBar';
 
 type Tab = 'banks' | 'pos' | 'bankMovements' | 'posMovements';
 
@@ -150,10 +151,9 @@ export default function BankPosPage() {
 
   return (
     <div className="page-content">
-      <div className="page-title-bar">
-        <h2 className="page-title">Banka / POS</h2>
+      <PageTitleBar title="Banka / POS">
         <button type="button" className="btn" onClick={() => { loadBanks(); loadPos(); }}>Yenile</button>
-      </div>
+      </PageTitleBar>
       {toast && <div className="toast success" onAnimationEnd={() => setToast('')}>{toast}</div>}
       {error && <div className="alert alert-error">{error}</div>}
 

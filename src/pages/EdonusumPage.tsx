@@ -4,7 +4,7 @@ import { ipc } from '@/services/ipc';
 import { formatCurrency } from '@/utils/format';
 import { useAuth } from '@/context/AuthContext';
 import { PERMISSIONS } from '@/types/auth';
-import '@/components/products/ProductForm.css';
+import PageTitleBar from '@/components/layout/PageTitleBar';
 
 const DISCLAIMER =
   'Bu modül e-fatura/e-arşiv/e-irsaliye hazırlık ve takip amaçlıdır. Resmi gönderim kullanıcı tarafından kendi e-dönüşüm sistemi üzerinden yapılır.';
@@ -147,9 +147,7 @@ export default function EdonusumPage() {
 
   return (
     <div className="page-content">
-      <div className="page-title-bar">
-        <h2 className="page-title">E-Dönüşüm</h2>
-      </div>
+      <PageTitleBar title="E-Dönüşüm" />
       {toast && <div className="toast-success">{toast}</div>}
       {error && <div className="alert alert-error">{error}</div>}
       <p style={{ fontSize: 11, color: '#666', margin: '0 0 8px' }}>{DISCLAIMER}</p>

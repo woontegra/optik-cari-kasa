@@ -16,7 +16,7 @@ import MedulaTrackingTab from '@/components/medula/MedulaTrackingTab';
 import { MEDULA_V2_DISCLAIMER } from '@/types/medulaV2';
 import { useAuth } from '@/context/AuthContext';
 import { PERMISSIONS } from '@/types/auth';
-import '@/components/products/ProductForm.css';
+import PageTitleBar from '@/components/layout/PageTitleBar';
 
 type PageTab =
   | 'medula'
@@ -165,10 +165,9 @@ export default function MedulaUtsPage() {
 
   return (
     <div className="page-content">
-      <div className="page-title-bar">
-        <h2 className="page-title">Medula / ÜTS</h2>
+      <PageTitleBar title="Medula / ÜTS">
         <button className="btn" onClick={() => (pageTab === 'medula' ? loadMedula() : loadUts())}>Yenile</button>
-      </div>
+      </PageTitleBar>
 
       {toast && <div className="toast-success">{toast}</div>}
       {error && <div className="alert alert-error" style={{ marginBottom: 8 }}>{error}</div>}

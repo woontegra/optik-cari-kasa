@@ -10,7 +10,7 @@ import { sanitizeBarcode } from '@/utils/barcode';
 import { formatScanNote, lineKey } from '@/types/barcode';
 import type { ParsedBarcode } from '@/types/barcode';
 import QuickCustomerForm from '@/components/customers/QuickCustomerForm';
-import '@/components/products/ProductForm.css';
+import PageTitleBar from '@/components/layout/PageTitleBar';
 
 function Toast({ message, onDone }: { message: string; onDone: () => void }) {
   useEffect(() => {
@@ -335,10 +335,9 @@ export default function SalePage() {
 
   return (
     <div className="page-content">
-      <div className="page-title-bar">
-        <h2 className="page-title">Barkodlu Satış</h2>
+      <PageTitleBar title="Barkodlu Satış">
         <button className="btn" onClick={clearList}>Listeyi Temizle</button>
-      </div>
+      </PageTitleBar>
 
       {toast && <Toast message={toast} onDone={() => setToast('')} />}
 

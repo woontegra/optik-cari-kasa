@@ -130,6 +130,11 @@ export function isMenuItemActive(pathname: string, search: string, item: MenuIte
   const params = new URLSearchParams(search);
   const itemParams = new URLSearchParams(item.search?.replace(/^\?/, '') || '');
 
+  if (item.path === '/e-donusum' && !item.search) {
+    const tab = params.get('tab');
+    return !tab || tab === 'sale';
+  }
+
   if (item.path === '/medula' && !item.search) {
     const tab = params.get('tab');
     return !tab || tab === 'medula';

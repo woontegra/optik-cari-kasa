@@ -6,6 +6,7 @@ import { formatDate } from '@/utils/format';
 import { PERMISSIONS } from '@/types/auth';
 import type { Appointment, AppointmentListFilters } from '@/types/customerTracking';
 import CommunicationPrepModal from '@/components/customers/CommunicationPrepModal';
+import PageTitleBar from '@/components/layout/PageTitleBar';
 
 type ViewFilter = AppointmentListFilters['view'];
 
@@ -45,9 +46,7 @@ export default function AppointmentsPage() {
 
   return (
     <div className="page-content">
-      <div className="page-title-bar">
-        <h2 className="page-title">Randevular</h2>
-      </div>
+      <PageTitleBar title="Randevular" />
 
       <div className="panel" style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
         <div className="filter-bar">

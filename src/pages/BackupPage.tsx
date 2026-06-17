@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ipc } from '@/services/ipc';
 import { formatDateTime, formatFileSize } from '@/utils/format';
 import type { BackupRecord } from '@/types/electron';
+import PageTitleBar from '@/components/layout/PageTitleBar';
 
 export default function BackupPage() {
   const [autoBackup, setAutoBackup] = useState(false);
@@ -103,9 +104,7 @@ export default function BackupPage() {
 
   return (
     <div className="page-content">
-      <div className="page-title-bar">
-        <h2 className="page-title">Yedekleme</h2>
-      </div>
+      <PageTitleBar title="Yedekleme" />
 
       {message && (
         <div

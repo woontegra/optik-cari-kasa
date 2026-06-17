@@ -10,6 +10,7 @@ import {
   type ExpenseInput,
   type PersonnelExpenseInput,
 } from '@/types/finance';
+import PageTitleBar from '@/components/layout/PageTitleBar';
 
 type Tab = 'expenses' | 'personnel';
 
@@ -117,10 +118,9 @@ export default function ExpensesPage() {
 
   return (
     <div className="page-content">
-      <div className="page-title-bar">
-        <h2 className="page-title">Giderler</h2>
+      <PageTitleBar title="Giderler">
         <button type="button" className="btn" onClick={load}>Yenile</button>
-      </div>
+      </PageTitleBar>
       {toast && <div className="toast success">{toast}</div>}
       {error && <div className="alert alert-error">{error}</div>}
 

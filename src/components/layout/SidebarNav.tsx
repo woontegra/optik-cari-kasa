@@ -9,6 +9,7 @@ import {
   menuItemKey,
   type MenuItemDef,
 } from '@/types/navigation';
+import { MENU_GROUP_MODULE } from '@/theme/modules';
 
 const STORAGE_KEY = 'woontegra_sidebar_collapsed';
 
@@ -77,15 +78,16 @@ export default function SidebarNav() {
         const groupActive = activeGroupId === group.id;
         const singleItem = group.items.length === 1 && group.id === 'home';
 
+        const groupModule = MENU_GROUP_MODULE[group.id] || 'home';
+
         if (singleItem) {
           const item = group.items[0];
+          const active = isMenuItemActive(location.pathname, location.search, item);
           return (
             <NavLink
               key={group.id}
               to={itemTo(item)}
-              className={({ isActive }) =>
-                `nav-item nav-item-top${isActive || isMenuItemActive(location.pathname, location.search, item) ? ' active' : ''}`
-              }
+              className={`nav-item nav-item-top module-${groupModule}${active ? ' active' : ''}`}
             >
               <span className="nav-icon">{item.icon}</span>
               <span className="nav-label">{item.label}</span>
@@ -102,6 +104,7 @@ export default function SidebarNav() {
               aria-expanded={expanded}
             >
               <span className="nav-group-left">
+                <span className={`nav-group-dot module-${groupModule}`} aria-hidden="true" />
                 <span className="nav-icon">{group.icon}</span>
                 <span className="nav-group-label">{group.label}</span>
               </span>
@@ -109,20 +112,19 @@ export default function SidebarNav() {
             </button>
             {expanded && (
               <div className="nav-group-items">
-                {group.items.map((item) => (
+                {group.items.map((item) => {
+                  const active = isMenuItemActive(location.pathname, location.search, item);
+                  return (
                   <NavLink
                     key={menuItemKey(item)}
                     to={itemTo(item)}
-                    className={() =>
-                      `nav-item nav-item-child${
-                        isMenuItemActive(location.pathname, location.search, item) ? ' active' : ''
-                      }`
-                    }
+                    className={`nav-item nav-item-child module-${groupModule}${active ? ' active' : ''}`}
                   >
                     <span className="nav-icon">{item.icon}</span>
                     <span className="nav-label">{item.label}</span>
                   </NavLink>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

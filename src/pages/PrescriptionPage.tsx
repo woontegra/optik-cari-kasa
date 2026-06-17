@@ -5,6 +5,7 @@ import type { Prescription, PrescriptionInput } from '@/types/electron';
 import { PRESCRIPTION_STATUSES } from '@/types/electron';
 import PrescriptionForm from '@/components/prescriptions/PrescriptionForm';
 import PrescriptionDetail from '@/components/prescriptions/PrescriptionDetail';
+import PageTitleBar from '@/components/layout/PageTitleBar';
 import '@/components/products/ProductForm.css';
 
 type FormMode = 'create' | 'edit' | 'view' | null;
@@ -108,10 +109,9 @@ export default function PrescriptionPage() {
 
   return (
     <div className="page-content">
-      <div className="page-title-bar">
-        <h2 className="page-title">Reçete Kayıtları</h2>
+      <PageTitleBar title="Reçete Kayıtları">
         <button className="btn btn-primary" onClick={openCreate}>Yeni Reçete</button>
-      </div>
+      </PageTitleBar>
 
       {toast && <Toast message={toast} onDone={() => setToast('')} />}
 

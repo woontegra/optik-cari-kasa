@@ -3,6 +3,7 @@ import { ipc } from '@/services/ipc';
 import { formatCurrency } from '@/utils/format';
 import { openPrintPreview } from '@/utils/print';
 import type { StatementFilter } from '@/types/finance';
+import PageTitleBar from '@/components/layout/PageTitleBar';
 
 type StmtType = 'customer' | 'supplier' | 'cash' | 'bank' | 'pos';
 
@@ -101,9 +102,7 @@ export default function StatementsPage() {
 
   return (
     <div className="page-content">
-      <div className="page-title-bar">
-        <h2 className="page-title">Ekstreler</h2>
-      </div>
+      <PageTitleBar title="Ekstreler" />
       {error && <div className="alert alert-error">{error}</div>}
 
       <div className="panel" style={{ marginBottom: 8 }}>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ipc } from '@/services/ipc';
+import PageTitleBar from '@/components/layout/PageTitleBar';
 
 interface CompanyForm {
   name: string;
@@ -81,12 +82,11 @@ export default function CompanyPage() {
 
   return (
     <div className="page-content">
-      <div className="page-title-bar">
-        <h2 className="page-title">Firma Ayarları</h2>
+      <PageTitleBar title="Firma Ayarları">
         <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
           {saving ? 'Kaydediliyor...' : 'Kaydet'}
         </button>
-      </div>
+      </PageTitleBar>
 
       {message && (
         <div className={`alert ${message.includes('kaydedildi') ? 'alert-success' : 'alert-error'}`}>{message}</div>

@@ -6,7 +6,7 @@ import { PRODUCT_TYPES } from '@/types/electron';
 import ProductForm from '@/components/products/ProductForm';
 import ProductImportWizard from '@/components/products/ProductImportWizard';
 import LabelPrintModal from '@/components/products/LabelPrintModal';
-import '@/components/products/ProductForm.css';
+import PageTitleBar from '@/components/layout/PageTitleBar';
 
 type FormMode = 'create' | 'edit' | 'view' | null;
 type LookupRow = { id: number; name: string; parent_id?: number | null };
@@ -248,9 +248,7 @@ export default function StockPage() {
 
   return (
     <div className="page-content">
-      <div className="page-title-bar">
-        <h2 className="page-title">Stok Kartları</h2>
-      </div>
+      <PageTitleBar title="Stok Kartları" />
 
       {toast && <Toast message={toast} onDone={() => setToast('')} />}
 

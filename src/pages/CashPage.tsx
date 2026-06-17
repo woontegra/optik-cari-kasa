@@ -5,7 +5,7 @@ import { formatCurrency, formatDateTime } from '@/utils/format';
 import type { CashMovementRow, CashSummary, Customer, CashPaymentType } from '@/types/electron';
 import { CASH_PAYMENT_TYPES } from '@/types/electron';
 import { PERMISSIONS } from '@/types/auth';
-import '@/components/products/ProductForm.css';
+import PageTitleBar from '@/components/layout/PageTitleBar';
 
 function Toast({ message, onDone }: { message: string; onDone: () => void }) {
   useEffect(() => {
@@ -147,10 +147,9 @@ export default function CashPage() {
 
   return (
     <div className="page-content">
-      <div className="page-title-bar">
-        <h2 className="page-title">Kasa / Tahsilat</h2>
+      <PageTitleBar title="Kasa / Tahsilat">
         <button className="btn" onClick={load}>Yenile</button>
-      </div>
+      </PageTitleBar>
 
       {toast && <Toast message={toast} onDone={() => setToast('')} />}
       {error && <div className="alert alert-error">{error}</div>}

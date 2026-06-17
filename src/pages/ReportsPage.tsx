@@ -17,7 +17,7 @@ import {
 import { PRODUCT_TYPES, CASH_PAYMENT_TYPES } from '@/types/electron';
 import { PAYMENT_STATUSES, SALE_STATUSES } from '@/types/sales';
 import { MEDULA_STATUSES, PRESCRIPTION_TYPES } from '@/types/medula';
-import '@/components/products/ProductForm.css';
+import PageTitleBar from '@/components/layout/PageTitleBar';
 
 const TABS: ReportTab[] = [
   'dayEnd',
@@ -367,6 +367,9 @@ export default function ReportsPage() {
     rxMissing,
     operationType,
     returnReason,
+    edonusumStatus,
+    edonusumDocType,
+    edonusumSourceType,
   ]);
 
   useEffect(() => {
@@ -664,9 +667,7 @@ export default function ReportsPage() {
 
   return (
     <div className="page-content">
-      <div className="page-title-bar">
-        <h2 className="page-title">Raporlar</h2>
-      </div>
+      <PageTitleBar title="Raporlar" />
 
       <div className="tab-bar" style={{ marginBottom: 8 }}>
         {TABS.map((t) => (
@@ -886,6 +887,28 @@ export default function ReportsPage() {
             <input placeholder="Müşteri" value={customerSearch} onChange={(e) => setCustomerSearch(e.target.value)} />
             <input placeholder="Ürün" value={productSearch} onChange={(e) => setProductSearch(e.target.value)} />
             <input placeholder="Neden" value={returnReason} onChange={(e) => setReturnReason(e.target.value)} />
+          </div>
+        )}
+
+        {tab === 'purchase' && (
+          <div className="filter-row" style={{ flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
+            <select value={productType} onChange={(e) => setProductType(e.target.value)}>
+              <option value="">Belge türü</option>
+              <option value="Alış Faturası">Alış Faturası</option>
+              <option value="Alış İrsaliyesi">Alış İrsaliyesi</option>
+            </select>
+            <select value={paymentStatus} onChange={(e) => setPaymentStatus(e.target.value)}>
+              <option value="">Ödeme durumu</option>
+              <option value="Ödendi">Ödendi</option>
+              <option value="Kısmi Ödendi">Kısmi Ödendi</option>
+              <option value="Ödenmedi">Ödenmedi</option>
+            </select>
+          </div>
+        )}
+
+        {tab === 'supplierAccount' && (
+          <div className="filter-row" style={{ flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
+            <input placeholder="Tedarikçi / vergi no" value={customerSearch} onChange={(e) => setCustomerSearch(e.target.value)} />
           </div>
         )}
 

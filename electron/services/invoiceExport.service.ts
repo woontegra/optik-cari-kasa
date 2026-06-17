@@ -74,7 +74,7 @@ export class InvoiceExportService {
   <DocumentType>${escapeXml(String(detail.document_type))}</DocumentType>
   <IssueDate>${escapeXml(String(detail.issue_date))}</IssueDate>
   <Issuer>
-    <Title>${escapeXml(String(company.company_name || settings.company_title || ''))}</Title>
+    <Title>${escapeXml(String(company.name || settings.company_title || ''))}</Title>
     <TaxNo>${escapeXml(String(company.tax_number || settings.tax_no || ''))}</TaxNo>
     <TaxOffice>${escapeXml(String(company.tax_office || settings.tax_office || ''))}</TaxOffice>
   </Issuer>
@@ -120,7 +120,7 @@ th{background:#f0f0f0}.r{text-align:right}.note{font-size:11px;color:#666;margin
 .disclaimer{background:#fff8e1;border:1px solid #e6c200;padding:8px;margin-bottom:12px;font-size:11px}
 </style></head><body>
 <div class="disclaimer">Bu belge e-fatura/e-arşiv hazırlık taslağıdır. Resmi gönderim entegratör sisteminiz üzerinden yapılır.</div>
-<div class="hdr"><h2>${company.company_name || 'Firma'}</h2><p>${company.address || ''} ${company.phone || ''}</p></div>
+<div class="hdr"><h2>${company.name || 'Firma'}</h2><p>${company.address || ''} ${company.phone || ''}</p></div>
 <h3>${detail.document_type} Taslağı — ${detail.draft_no}</h3>
 <p><strong>Cari:</strong> ${party} | <strong>Tarih:</strong> ${detail.issue_date} | <strong>Durum:</strong> ${detail.status}</p>
 <table><thead><tr><th>Ürün</th><th>Barkod</th><th>Miktar</th><th>Birim Fiyat</th><th>Toplam</th></tr></thead>

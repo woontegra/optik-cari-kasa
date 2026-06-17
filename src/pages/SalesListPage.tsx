@@ -4,6 +4,7 @@ import { formatCurrency, formatDateTime } from '@/utils/format';
 import type { SaleListItem } from '@/types/electron';
 import { PAYMENT_STATUSES, SALE_STATUSES } from '@/types/electron';
 import SaleDetail from '@/components/sales/SaleDetail';
+import PageTitleBar from '@/components/layout/PageTitleBar';
 import '@/components/products/ProductForm.css';
 
 export default function SalesListPage() {
@@ -46,10 +47,9 @@ export default function SalesListPage() {
 
   return (
     <div className="page-content">
-      <div className="page-title-bar">
-        <h2 className="page-title">Satışlar</h2>
+      <PageTitleBar title="Satışlar">
         <button className="btn" onClick={load}>Yenile</button>
-      </div>
+      </PageTitleBar>
 
       <div className="panel" style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
         <div className="filter-bar">

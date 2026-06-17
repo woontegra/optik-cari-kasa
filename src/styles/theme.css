@@ -1,0 +1,383 @@
+/* Woontegra — modül renk sistemi (soft masaüstü tonları) */
+:root {
+  --mod-stock: #2e7d52;
+  --mod-stock-bg: #eef6f1;
+  --mod-stock-border: #a8d4b8;
+
+  --mod-sales: #2b6cb0;
+  --mod-sales-bg: #edf4fc;
+  --mod-sales-border: #a8c8e8;
+
+  --mod-finance: #c6761a;
+  --mod-finance-bg: #fdf6ec;
+  --mod-finance-border: #e8c9a0;
+
+  --mod-official: #6b4c9a;
+  --mod-official-bg: #f3eef9;
+  --mod-official-border: #c4b0dc;
+
+  --mod-reports: #3d5a80;
+  --mod-reports-bg: #eef2f7;
+  --mod-reports-border: #a8b8cc;
+
+  --mod-admin: #5c6670;
+  --mod-admin-bg: #f2f3f5;
+  --mod-admin-border: #c5c9ce;
+
+  --mod-home: #2980b9;
+  --mod-home-bg: #edf4fc;
+  --mod-home-border: #a8c8e8;
+
+  --tone-success: #1e7a45;
+  --tone-success-bg: #e8f6ee;
+  --tone-warning: #b86e0a;
+  --tone-warning-bg: #fef6e8;
+  --tone-danger: #b83227;
+  --tone-danger-bg: #fdecea;
+  --tone-neutral-bg: #f4f5f7;
+  --tone-neutral-border: #d8dce0;
+}
+
+/* Modül etiketi — sayfa başlığı */
+.page-title-bar {
+  gap: 8px;
+}
+
+.page-title-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.module-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 2px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.module-badge.module-stock { color: var(--mod-stock); background: var(--mod-stock-bg); border-color: var(--mod-stock-border); }
+.module-badge.module-sales { color: var(--mod-sales); background: var(--mod-sales-bg); border-color: var(--mod-sales-border); }
+.module-badge.module-finance { color: var(--mod-finance); background: var(--mod-finance-bg); border-color: var(--mod-finance-border); }
+.module-badge.module-official { color: var(--mod-official); background: var(--mod-official-bg); border-color: var(--mod-official-border); }
+.module-badge.module-reports { color: var(--mod-reports); background: var(--mod-reports-bg); border-color: var(--mod-reports-border); }
+.module-badge.module-admin { color: var(--mod-admin); background: var(--mod-admin-bg); border-color: var(--mod-admin-border); }
+.module-badge.module-home { color: var(--mod-home); background: var(--mod-home-bg); border-color: var(--mod-home-border); }
+
+/* Durum rozetleri */
+.status-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 2px;
+  border: 1px solid transparent;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.status-success { color: var(--tone-success); background: var(--tone-success-bg); border-color: #a8d4b8; }
+.status-warning { color: var(--tone-warning); background: var(--tone-warning-bg); border-color: #e8c9a0; }
+.status-danger { color: var(--tone-danger); background: var(--tone-danger-bg); border-color: #e8b0aa; }
+.status-info { color: var(--mod-sales); background: var(--mod-sales-bg); border-color: var(--mod-sales-border); }
+.status-official { color: var(--mod-official); background: var(--mod-official-bg); border-color: var(--mod-official-border); }
+.status-neutral { color: var(--text-secondary); background: var(--tone-neutral-bg); border-color: var(--tone-neutral-border); }
+.status-muted { color: var(--text-muted); background: #eceff1; border-color: #cfd4d9; }
+
+/* Sol menü — grup renk işareti */
+.nav-group-dot {
+  width: 4px;
+  height: 14px;
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+.nav-group-dot.module-stock { background: #4caf7a; }
+.nav-group-dot.module-sales { background: #5b9bd5; }
+.nav-group-dot.module-finance { background: #e8a54b; }
+.nav-group-dot.module-official { background: #9b7ec8; }
+.nav-group-dot.module-reports { background: #6b8cae; }
+.nav-group-dot.module-admin { background: #8a939c; }
+.nav-group-dot.module-home { background: #5b9bd5; }
+
+.nav-item.active.module-stock { border-left-color: #4caf7a; }
+.nav-item.active.module-sales { border-left-color: #5b9bd5; }
+.nav-item.active.module-finance { border-left-color: #e8a54b; }
+.nav-item.active.module-official { border-left-color: #9b7ec8; }
+.nav-item.active.module-reports { border-left-color: #6b8cae; }
+.nav-item.active.module-admin { border-left-color: #8a939c; }
+.nav-item.active.module-home { border-left-color: #5b9bd5; }
+
+/* Hızlı işlem butonları */
+.quick-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 4px 11px;
+  border-radius: 3px;
+  border: 1px solid;
+  font-size: 12px;
+  cursor: pointer;
+  background: #fff;
+  transition: filter 0.1s;
+}
+
+.quick-action-btn:hover { filter: brightness(0.97); }
+
+.quick-action-btn.tone-stock { color: var(--mod-stock); border-color: var(--mod-stock-border); background: var(--mod-stock-bg); }
+.quick-action-btn.tone-sales { color: var(--mod-sales); border-color: var(--mod-sales-border); background: var(--mod-sales-bg); }
+.quick-action-btn.tone-finance { color: var(--mod-finance); border-color: var(--mod-finance-border); background: var(--mod-finance-bg); }
+.quick-action-btn.tone-official { color: var(--mod-official); border-color: var(--mod-official-border); background: var(--mod-official-bg); }
+.quick-action-btn.tone-reports { color: var(--mod-reports); border-color: var(--mod-reports-border); background: var(--mod-reports-bg); }
+
+/* Dashboard bölümleri */
+.dashboard-section {
+  margin-bottom: 10px;
+  border: 1px solid var(--border-light);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.section-tone-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.section-tone-dot.module-sales { background: var(--mod-sales); }
+.section-tone-dot.module-finance { background: var(--mod-finance); }
+.section-tone-dot.module-stock { background: var(--mod-stock); }
+.section-tone-dot.module-official { background: var(--mod-official); }
+.section-tone-dot.module-home { background: var(--mod-home); }
+
+.dashboard-section.section-tone-sales {
+  border-color: var(--mod-sales-border);
+  background: linear-gradient(180deg, var(--mod-sales-bg) 0%, #f8fafc 100%);
+}
+
+.dashboard-section.section-tone-finance {
+  border-color: var(--mod-finance-border);
+  background: linear-gradient(180deg, var(--mod-finance-bg) 0%, #f8fafc 100%);
+}
+
+.dashboard-section.section-tone-stock {
+  border-color: var(--mod-stock-border);
+  background: linear-gradient(180deg, var(--mod-stock-bg) 0%, #f8fafc 100%);
+}
+
+.dashboard-section.section-tone-official {
+  border-color: var(--mod-official-border);
+  background: linear-gradient(180deg, var(--mod-official-bg) 0%, #f8fafc 100%);
+}
+
+.dashboard-section.section-tone-home {
+  border-color: var(--mod-home-border);
+  background: linear-gradient(180deg, #f5f8fc 0%, #f8fafc 100%);
+}
+
+.dashboard-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.55);
+  border-bottom: 1px solid var(--border-light);
+  cursor: pointer;
+  user-select: none;
+}
+
+.dashboard-section-header h3 {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.dashboard-section-toggle {
+  font-size: 10px;
+  color: var(--text-muted);
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+
+.dashboard-section-body {
+  padding: 8px 10px 10px;
+}
+
+.dashboard-hero-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.dashboard-compact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 6px;
+}
+
+@media (max-width: 1200px) {
+  .dashboard-hero-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 800px) {
+  .dashboard-hero-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Dashboard kartları */
+.dash-card {
+  position: relative;
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  padding: 8px 10px 8px 12px;
+  overflow: hidden;
+  min-height: 72px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.03);
+}
+
+.dash-card.module-stock:not(.alert-critical):not(.alert-warning):not(.alert-success):not(.alert-pending) {
+  background: var(--mod-stock-bg);
+  border-color: var(--mod-stock-border);
+}
+
+.dash-card.module-sales:not(.alert-critical):not(.alert-warning):not(.alert-success):not(.alert-pending) {
+  background: var(--mod-sales-bg);
+  border-color: var(--mod-sales-border);
+}
+
+.dash-card.module-finance:not(.alert-critical):not(.alert-warning):not(.alert-success):not(.alert-pending) {
+  background: var(--mod-finance-bg);
+  border-color: var(--mod-finance-border);
+}
+
+.dash-card.module-official:not(.alert-critical):not(.alert-warning):not(.alert-success):not(.alert-pending) {
+  background: var(--mod-official-bg);
+  border-color: var(--mod-official-border);
+}
+
+.dash-card.module-home:not(.alert-critical):not(.alert-warning):not(.alert-success):not(.alert-pending) {
+  background: var(--mod-home-bg);
+  border-color: var(--mod-home-border);
+}
+
+.dash-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--tone-neutral-border);
+}
+
+.dash-card.module-stock::before { background: var(--mod-stock); }
+.dash-card.module-sales::before { background: var(--mod-sales); }
+.dash-card.module-finance::before { background: var(--mod-finance); }
+.dash-card.module-official::before { background: var(--mod-official); }
+.dash-card.module-reports::before { background: var(--mod-reports); }
+.dash-card.module-home::before { background: var(--mod-home); }
+
+.dash-card.hero {
+  min-height: 84px;
+  padding: 10px 12px 10px 14px;
+}
+
+.dash-card.hero .dash-card-value {
+  font-size: 20px;
+}
+
+.dash-card.compact {
+  min-height: 64px;
+  padding: 6px 8px 6px 11px;
+}
+
+.dash-card.compact .dash-card-value {
+  font-size: 15px;
+}
+
+.dash-card.alert-critical {
+  background: var(--tone-danger-bg);
+  border-color: #e8b0aa;
+}
+
+.dash-card.alert-warning {
+  background: var(--tone-warning-bg);
+  border-color: #e8c9a0;
+}
+
+.dash-card.alert-success {
+  background: var(--tone-success-bg);
+  border-color: #a8d4b8;
+}
+
+.dash-card.alert-pending {
+  background: var(--mod-official-bg);
+  border-color: var(--mod-official-border);
+}
+
+.dash-card.alert-neutral {
+  background: #eceff1 !important;
+  border-color: #cfd4d9 !important;
+}
+
+button.dash-card-link {
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
+
+.dash-card-link:hover {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  filter: brightness(0.99);
+}
+
+.dash-card-top {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 3px;
+}
+
+.dash-card-icon {
+  font-size: 11px;
+  opacity: 0.85;
+}
+
+.dash-card-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.dash-card-value {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.dash-card-hint {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+.dash-card-value.val-success { color: var(--tone-success); }
+.dash-card-value.val-danger { color: var(--tone-danger); }
+.dash-card-value.val-warning { color: var(--tone-warning); }
+.dash-card-value.val-muted { color: var(--text-muted); font-weight: 600; }

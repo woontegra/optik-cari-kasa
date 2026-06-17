@@ -10,6 +10,7 @@ import {
   type CampaignInput,
   type CampaignTargetInput,
 } from '@/types/campaign';
+import PageTitleBar from '@/components/layout/PageTitleBar';
 
 type Tab = 'active' | 'all' | 'sales' | 'report';
 
@@ -143,14 +144,13 @@ export default function CampaignsPage() {
 
   return (
     <div className="page-content">
-      <div className="page-title-bar">
-        <h2 className="page-title">Kampanyalar</h2>
+      <PageTitleBar title="Kampanyalar">
         {canEdit && (
           <button type="button" className="btn btn-primary" onClick={() => { setShowForm(true); setEditId(null); setForm(emptyForm); setSelectedTargets([]); }}>
             Yeni Kampanya
           </button>
         )}
-      </div>
+      </PageTitleBar>
       {toast && <div className="toast success">{toast}</div>}
       {error && <div className="alert alert-error">{error}</div>}
 

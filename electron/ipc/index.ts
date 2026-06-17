@@ -1,0 +1,66 @@
+import type { IpcMain } from 'electron';
+import { dialog } from 'electron';
+import { registerLicenseHandlers } from './license.handler';
+import { registerAuthHandlers } from './auth.handler';
+import { registerProductHandlers } from './products.handler';
+import { registerCustomerHandlers } from './customers.handler';
+import { registerPrescriptionHandlers } from './prescriptions.handler';
+import { registerDashboardHandlers } from './dashboard.handler';
+import { registerCashHandlers } from './cash.handler';
+import { registerBackupHandlers } from './backup.handler';
+import {
+  registerCompanyHandlers,
+  registerSettingsHandlers,
+  registerSecurityHandlers,
+} from './settings.handler';
+import { registerAppHandlers } from './app.handler';
+import { registerSalesHandlers } from './sales.handler';
+import { registerCustomerAccountHandlers } from './customerAccount.handler';
+import { registerReturnHandlers } from './returns.handler';
+import { registerPrintHandlers } from './print.handler';
+import { registerImportExportHandlers } from './importExport.handler';
+import { registerLabelHandlers, registerLabelSettingsHandlers } from './labels.handler';
+import { registerMedulaHandlers } from './medula.handler';
+import { registerUtsHandlers } from './uts.handler';
+import { registerReportHandlers } from './reports.handler';
+import { registerUserHandlers } from './users.handler';
+import { registerAuditHandlers } from './audit.handler';
+import { registerStockEntryHandlers } from './stockEntry.handler';
+import { registerBarcodeHandlers } from './barcode.handler';
+import { registerInventoryCountHandlers } from './inventoryCount.handler';
+import { registerSupplierHandlers } from './suppliers.handler';
+import { registerTitubbHandlers } from './titubb.handler';
+import { registerOpticalLookupHandlers } from './opticalLookup.handler';
+
+export function registerIpcHandlers(ipcMain: IpcMain): void {
+  registerLicenseHandlers(ipcMain);
+  registerAuthHandlers(ipcMain);
+  registerProductHandlers(ipcMain);
+  registerSalesHandlers(ipcMain);
+  registerCustomerHandlers(ipcMain);
+  registerCustomerAccountHandlers(ipcMain);
+  registerPrescriptionHandlers(ipcMain);
+  registerDashboardHandlers(ipcMain);
+  registerCashHandlers(ipcMain);
+  registerReturnHandlers(ipcMain);
+  registerPrintHandlers(ipcMain);
+  registerImportExportHandlers(ipcMain, dialog);
+  registerLabelHandlers(ipcMain);
+  registerLabelSettingsHandlers(ipcMain);
+  registerMedulaHandlers(ipcMain, dialog);
+  registerUtsHandlers(ipcMain, dialog);
+  registerReportHandlers(ipcMain, dialog);
+  registerBackupHandlers(ipcMain, dialog);
+  registerCompanyHandlers(ipcMain, dialog);
+  registerSecurityHandlers(ipcMain);
+  registerUserHandlers(ipcMain);
+  registerAuditHandlers(ipcMain);
+  registerSettingsHandlers(ipcMain);
+  registerAppHandlers(ipcMain);
+  registerStockEntryHandlers(ipcMain, dialog);
+  registerBarcodeHandlers(ipcMain);
+  registerInventoryCountHandlers(ipcMain, dialog);
+  registerSupplierHandlers(ipcMain, dialog);
+  registerTitubbHandlers(ipcMain, dialog);
+  registerOpticalLookupHandlers(ipcMain);
+}

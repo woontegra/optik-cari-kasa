@@ -31,6 +31,7 @@ function mapRow(row: Record<string, unknown>): Record<string, unknown> {
     whatsapp_permission: row.whatsapp_permission === 1,
     marketing_permission: row.marketing_permission === 1,
     is_vip: row.is_vip === 1,
+    is_einvoice_registered: row.is_einvoice_registered === 1,
   };
 }
 
@@ -227,6 +228,14 @@ export class CustomerService {
       input.important_note?.trim() || null,
       input.risk_note?.trim() || null,
       input.is_vip ? 1 : 0,
+      input.invoice_title?.trim() || null,
+      input.tax_office?.trim() || null,
+      input.tax_no?.trim() || null,
+      input.invoice_address?.trim() || null,
+      input.invoice_city?.trim() || null,
+      input.invoice_district?.trim() || null,
+      input.is_einvoice_registered ? 1 : 0,
+      input.invoice_party_type?.trim() || 'Bireysel',
     ];
   }
 
@@ -239,8 +248,10 @@ export class CustomerService {
           kvkk_consent, sms_permission, email_permission, is_active,
           customer_category, second_phone, whatsapp_phone, institution_name, institution_no,
           occupation, reference_source, referred_by_customer_id, last_visit_date, next_control_date,
-          whatsapp_permission, marketing_permission, important_note, risk_note, is_vip
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          whatsapp_permission, marketing_permission, important_note, risk_note, is_vip,
+          invoice_title, tax_office, tax_no, invoice_address, invoice_city, invoice_district,
+          is_einvoice_registered, invoice_party_type
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
       .run(...this.insertParams(input));
     return { id: Number(result.lastInsertRowid) };
@@ -270,6 +281,9 @@ export class CustomerService {
           last_visit_date = ?, next_control_date = ?,
           whatsapp_permission = ?, marketing_permission = ?,
           important_note = ?, risk_note = ?, is_vip = ?,
+          invoice_title = ?, tax_office = ?, tax_no = ?,
+          invoice_address = ?, invoice_city = ?, invoice_district = ?,
+          is_einvoice_registered = ?, invoice_party_type = ?,
           updated_at = datetime('now', 'localtime')
          WHERE id = ?`
       )

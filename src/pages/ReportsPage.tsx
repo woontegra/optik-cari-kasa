@@ -30,6 +30,7 @@ const TABS: ReportTab[] = [
   'prescriptionMedula',
   'returnCancel',
   'utsOperations',
+  'edonusum',
 ];
 
 type LookupRow = { id: number; name: string; parent_id?: number | null };
@@ -143,6 +144,9 @@ export default function ReportsPage() {
   const [rxMissing, setRxMissing] = useState('');
   const [operationType, setOperationType] = useState('');
   const [returnReason, setReturnReason] = useState('');
+  const [edonusumStatus, setEdonusumStatus] = useState('');
+  const [edonusumDocType, setEdonusumDocType] = useState('');
+  const [edonusumSourceType, setEdonusumSourceType] = useState('');
 
   const switchTab = (t: ReportTab) => {
     setTab(t);
@@ -295,6 +299,16 @@ export default function ReportsPage() {
           result = await ipc.utsOperations.getReport({
             date_from: dateFrom,
             date_to: dateTo,
+          });
+          break;
+        case 'edonusum':
+          result = await ipc.reports.getEdonusumReport({
+            date_from: dateFrom,
+            date_to: dateTo,
+            status: edonusumStatus || undefined,
+            document_type: edonusumDocType || undefined,
+            source_type: edonusumSourceType || undefined,
+            customer_search: customerSearch || undefined,
           });
           break;
         default:
@@ -568,6 +582,27 @@ export default function ReportsPage() {
           reason: r.reason || '-',
           notes: r.notes || '-',
         }));
+      } else if (tab === 'edonusum') {
+        summary = [
+          { label: 'Toplam Taslak', value: String(s.total) },
+          { label: 'Hazır', value: String(s.ready) },
+          { label: 'Dışa Aktarılan', value: String(s.exported) },
+          { label: 'Gönderildi', value: String(s.sent) },
+          { label: 'İptal', value: String(s.cancelled) },
+          { label: 'Toplam Tutar', value: formatCurrency(s.totalAmount) },
+          { label: 'KDV Toplamı', value: formatCurrency(s.vatTotal) },
+        ];
+        columns = ['draft_no', 'issue_date', 'document_type', 'source_type', 'customer_name', 'supplier_name', 'total_amount', 'status'];
+        rows = ((data.rows as Record<string, unknown>[]) || []).map((r) => ({
+          draft_no: r.draft_no,
+          issue_date: formatDate(String(r.issue_date)),
+          document_type: r.document_type,
+          source_type: r.source_type,
+          customer_name: r.customer_name || '-',
+          supplier_name: r.supplier_name || '-',
+          total_amount: formatCurrency(Number(r.total_amount)),
+          status: r.status,
+        }));
       }
     }
 
@@ -585,6 +620,8 @@ export default function ReportsPage() {
       returnCancel: reportFileName('iade-iptal-raporu'),
       purchase: reportFileName('alis-raporu'),
       supplierAccount: reportFileName('tedarikci-cari-raporu'),
+      utsOperations: reportFileName('uts-operasyon-raporu'),
+      edonusum: reportFileName('e-donusum-raporu'),
     };
     const payload = buildPrintPayload();
     if (!payload.rows.length) {
@@ -849,6 +886,36 @@ export default function ReportsPage() {
             <input placeholder="Müşteri" value={customerSearch} onChange={(e) => setCustomerSearch(e.target.value)} />
             <input placeholder="Ürün" value={productSearch} onChange={(e) => setProductSearch(e.target.value)} />
             <input placeholder="Neden" value={returnReason} onChange={(e) => setReturnReason(e.target.value)} />
+          </div>
+        )}
+
+        {tab === 'edonusum' && (
+          <div className="filter-row" style={{ flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
+            <select value={edonusumDocType} onChange={(e) => setEdonusumDocType(e.target.value)}>
+              <option value="">Belge türü</option>
+              <option value="E-Arşiv">E-Arşiv</option>
+              <option value="E-Fatura">E-Fatura</option>
+              <option value="Alış Faturası">Alış Faturası</option>
+              <option value="Alış İrsaliyesi">Alış İrsaliyesi</option>
+              <option value="E-İrsaliye">E-İrsaliye</option>
+            </select>
+            <select value={edonusumStatus} onChange={(e) => setEdonusumStatus(e.target.value)}>
+              <option value="">Durum</option>
+              <option value="Taslak">Taslak</option>
+              <option value="Hazır">Hazır</option>
+              <option value="Eksik Bilgi">Eksik Bilgi</option>
+              <option value="Dışa Aktarıldı">Dışa Aktarıldı</option>
+              <option value="Gönderildi İşaretlendi">Gönderildi İşaretlendi</option>
+              <option value="İptal">İptal</option>
+            </select>
+            <select value={edonusumSourceType} onChange={(e) => setEdonusumSourceType(e.target.value)}>
+              <option value="">Kaynak türü</option>
+              <option value="SALE">Satış</option>
+              <option value="PURCHASE">Alış</option>
+              <option value="SGK_BATCH">SGK Batch</option>
+              <option value="STOCK_ENTRY">Mal Kabul</option>
+            </select>
+            <input placeholder="Müşteri / tedarikçi" value={customerSearch} onChange={(e) => setCustomerSearch(e.target.value)} />
           </div>
         )}
 
@@ -1255,6 +1322,38 @@ export default function ReportsPage() {
                 <td className="text-right">{formatCurrency(Number(r.amount))}</td>
                 <td>{String(r.reason || '-')}</td>
                 <td>{String(r.notes || '-')}</td>
+              </tr>
+            )}
+          />
+        </>
+      )}
+
+      {tab === 'edonusum' && data && (
+        <>
+          <SummaryRow
+            items={[
+              { label: 'Toplam Taslak', value: String((data.summary as Record<string, number>)?.total ?? 0) },
+              { label: 'Hazır', value: String((data.summary as Record<string, number>)?.ready ?? 0) },
+              { label: 'Dışa Aktarılan', value: String((data.summary as Record<string, number>)?.exported ?? 0) },
+              { label: 'Gönderildi', value: String((data.summary as Record<string, number>)?.sent ?? 0) },
+              { label: 'İptal', value: String((data.summary as Record<string, number>)?.cancelled ?? 0) },
+              { label: 'Toplam Tutar', value: formatCurrency((data.summary as Record<string, number>)?.totalAmount ?? 0) },
+              { label: 'KDV Toplamı', value: formatCurrency((data.summary as Record<string, number>)?.vatTotal ?? 0) },
+            ]}
+          />
+          <ReportTable
+            headers={['Taslak No', 'Tarih', 'Belge Türü', 'Kaynak', 'Müşteri', 'Tedarikçi', 'Tutar', 'Durum']}
+            rows={(data.rows as Record<string, unknown>[]) || []}
+            renderRow={(r, i) => (
+              <tr key={i}>
+                <td>{String(r.draft_no)}</td>
+                <td>{formatDate(String(r.issue_date))}</td>
+                <td>{String(r.document_type)}</td>
+                <td>{String(r.source_type)}</td>
+                <td>{String(r.customer_name || '-')}</td>
+                <td>{String(r.supplier_name || '-')}</td>
+                <td className="text-right">{formatCurrency(Number(r.total_amount))}</td>
+                <td>{String(r.status)}</td>
               </tr>
             )}
           />

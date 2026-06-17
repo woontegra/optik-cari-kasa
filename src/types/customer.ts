@@ -27,6 +27,14 @@ export interface CustomerInput {
   important_note?: string;
   risk_note?: string;
   is_vip?: boolean;
+  invoice_title?: string;
+  tax_office?: string;
+  tax_no?: string;
+  invoice_address?: string;
+  invoice_city?: string;
+  invoice_district?: string;
+  is_einvoice_registered?: boolean;
+  invoice_party_type?: string;
 }
 
 export interface Customer extends CustomerInput {

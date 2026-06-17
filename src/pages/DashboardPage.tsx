@@ -120,6 +120,22 @@ export default function DashboardPage() {
           <div className="stat-label">SGK Faturaya Hazır</div>
           <div className={`stat-value${(stats.sgkInvoiceReady ?? 0) > 0 ? ' amount-positive' : ''}`}>{stats.sgkInvoiceReady ?? 0}</div>
         </div>
+        <div className="stat-box stat-box-link" onClick={() => navigate('/e-donusum?tab=drafts')} role="button" tabIndex={0}>
+          <div className="stat-label">Fatura Taslağı</div>
+          <div className="stat-value">{stats.invoiceDraftCount ?? 0}</div>
+        </div>
+        <div className="stat-box stat-box-link" onClick={() => navigate('/e-donusum?tab=drafts')} role="button" tabIndex={0}>
+          <div className="stat-label">Dışa Aktarılacak Belge</div>
+          <div className={`stat-value${(stats.invoiceExportPending ?? 0) > 0 ? ' amount-positive' : ''}`}>{stats.invoiceExportPending ?? 0}</div>
+        </div>
+        <div className="stat-box stat-box-link" onClick={() => navigate('/e-donusum?tab=drafts')} role="button" tabIndex={0}>
+          <div className="stat-label">Eksik Bilgili Fatura</div>
+          <div className={`stat-value${(stats.invoiceMissingInfo ?? 0) > 0 ? ' amount-negative' : ''}`}>{stats.invoiceMissingInfo ?? 0}</div>
+        </div>
+        <div className="stat-box stat-box-link" onClick={() => navigate('/e-donusum?tab=sgk')} role="button" tabIndex={0}>
+          <div className="stat-label">SGK Fatura Hazır</div>
+          <div className={`stat-value${(stats.sgkInvoiceReadyForEdonusum ?? 0) > 0 ? ' amount-positive' : ''}`}>{stats.sgkInvoiceReadyForEdonusum ?? 0}</div>
+        </div>
         <div className="stat-box stat-box-link" onClick={() => navigate('/medula?tab=receivable')} role="button" tabIndex={0}>
           <div className="stat-label">Kurum Alacağı</div>
           <div className="stat-value amount-negative">{formatCurrency(stats.institutionReceivableTotal ?? 0)}</div>

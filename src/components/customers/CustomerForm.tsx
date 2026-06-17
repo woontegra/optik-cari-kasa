@@ -4,7 +4,7 @@ import type { Customer, CustomerInput } from '@/types/electron';
 import type { CustomerCategory } from '@/types/customerTracking';
 import '@/components/products/ProductForm.css';
 
-type FormTab = 'general' | 'contact' | 'institution' | 'permissions' | 'notes' | 'categories';
+type FormTab = 'general' | 'contact' | 'institution' | 'invoice' | 'permissions' | 'notes' | 'categories';
 
 const emptyForm = (): CustomerInput => ({
   full_name: '',
@@ -35,6 +35,14 @@ const emptyForm = (): CustomerInput => ({
   important_note: '',
   risk_note: '',
   is_vip: false,
+  invoice_title: '',
+  tax_office: '',
+  tax_no: '',
+  invoice_address: '',
+  invoice_city: '',
+  invoice_district: '',
+  is_einvoice_registered: false,
+  invoice_party_type: 'Bireysel',
 });
 
 interface CustomerFormProps {
@@ -88,6 +96,14 @@ export default function CustomerForm({ customer, mode, onSave, onDeactivate, onC
         important_note: customer.important_note || '',
         risk_note: customer.risk_note || '',
         is_vip: !!customer.is_vip,
+        invoice_title: customer.invoice_title || '',
+        tax_office: customer.tax_office || '',
+        tax_no: customer.tax_no || '',
+        invoice_address: customer.invoice_address || '',
+        invoice_city: customer.invoice_city || '',
+        invoice_district: customer.invoice_district || '',
+        is_einvoice_registered: !!customer.is_einvoice_registered,
+        invoice_party_type: customer.invoice_party_type || 'Bireysel',
       });
     } else {
       setForm(emptyForm());
@@ -115,6 +131,7 @@ export default function CustomerForm({ customer, mode, onSave, onDeactivate, onC
     { id: 'general', label: 'Genel Bilgiler' },
     { id: 'contact', label: 'İletişim' },
     { id: 'institution', label: 'Kurum / Referans' },
+    { id: 'invoice', label: 'Fatura Bilgileri' },
     { id: 'permissions', label: 'İzinler' },
     { id: 'notes', label: 'Notlar' },
     { id: 'categories', label: 'Kategoriler' },
@@ -229,6 +246,46 @@ export default function CustomerForm({ customer, mode, onSave, onDeactivate, onC
                 <label>Tavsiye Eden Müşteri ID</label>
                 <input type="number" className="form-input" value={form.referred_by_customer_id || ''} onChange={(e) => setField('referred_by_customer_id', e.target.value ? Number(e.target.value) : null)} readOnly={readOnly} />
               </div>
+            </div>
+          )}
+
+          {tab === 'invoice' && (
+            <div className="form-row">
+              <div className="form-group">
+                <label>Fatura Unvanı</label>
+                <input className="form-input" value={form.invoice_title || ''} onChange={(e) => setField('invoice_title', e.target.value)} readOnly={readOnly} />
+              </div>
+              <div className="form-group">
+                <label>Fatura Tipi</label>
+                <select className="form-select" value={form.invoice_party_type || 'Bireysel'} onChange={(e) => setField('invoice_party_type', e.target.value)} disabled={readOnly}>
+                  <option value="Bireysel">Bireysel</option>
+                  <option value="Kurumsal">Kurumsal</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>VKN / TCKN</label>
+                <input className="form-input" value={form.tax_no || ''} onChange={(e) => setField('tax_no', e.target.value)} readOnly={readOnly} />
+              </div>
+              <div className="form-group">
+                <label>Vergi Dairesi</label>
+                <input className="form-input" value={form.tax_office || ''} onChange={(e) => setField('tax_office', e.target.value)} readOnly={readOnly} />
+              </div>
+              <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                <label>Fatura Adresi</label>
+                <input className="form-input" value={form.invoice_address || ''} onChange={(e) => setField('invoice_address', e.target.value)} readOnly={readOnly} />
+              </div>
+              <div className="form-group">
+                <label>İl</label>
+                <input className="form-input" value={form.invoice_city || ''} onChange={(e) => setField('invoice_city', e.target.value)} readOnly={readOnly} />
+              </div>
+              <div className="form-group">
+                <label>İlçe</label>
+                <input className="form-input" value={form.invoice_district || ''} onChange={(e) => setField('invoice_district', e.target.value)} readOnly={readOnly} />
+              </div>
+              <label className="checkbox-label" style={{ alignSelf: 'end' }}>
+                <input type="checkbox" checked={!!form.is_einvoice_registered} onChange={(e) => setField('is_einvoice_registered', e.target.checked)} disabled={readOnly} />
+                E-fatura mükellefi
+              </label>
             </div>
           )}
 

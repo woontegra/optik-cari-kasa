@@ -17,6 +17,7 @@ import SalePage from '@/pages/SalePage';
 import SalesListPage from '@/pages/SalesListPage';
 import ReturnPage from '@/pages/ReturnPage';
 import MedulaUtsPage from '@/pages/MedulaUtsPage';
+import EdonusumPage from '@/pages/EdonusumPage';
 import CashPage from '@/pages/CashPage';
 import BackupPage from '@/pages/BackupPage';
 import ReportsPage from '@/pages/ReportsPage';
@@ -78,6 +79,7 @@ export default function AppRoutes() {
             <Route path="satislar" element={<ProtectedRoute><SalesListPage /></ProtectedRoute>} />
             <Route path="iade" element={<ProtectedRoute><ReturnPage /></ProtectedRoute>} />
             <Route path="medula" element={<ProtectedRoute><MedulaUtsPage /></ProtectedRoute>} />
+            <Route path="e-donusum" element={<ProtectedRoute><EdonusumPage /></ProtectedRoute>} />
             <Route path="satis" element={<ProtectedRoute><SalePage /></ProtectedRoute>} />
             <Route path="kasa" element={<ProtectedRoute><CashPage /></ProtectedRoute>} />
             <Route path="banka-pos" element={<ProtectedRoute><BankPosPage /></ProtectedRoute>} />

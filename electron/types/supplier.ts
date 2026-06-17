@@ -8,6 +8,8 @@ export interface SupplierInput {
   city?: string;
   district?: string;
   address?: string;
+  invoice_address?: string;
+  is_einvoice_registered?: boolean;
   notes?: string;
 }
 

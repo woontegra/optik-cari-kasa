@@ -37,6 +37,8 @@ const emptySupplier = {
   city: '',
   district: '',
   address: '',
+  invoice_address: '',
+  is_einvoice_registered: false,
   notes: '',
 };
 
@@ -385,6 +387,8 @@ export default function SuppliersPage() {
                               city: String(s.city || ''),
                               district: String(s.district || ''),
                               address: String(s.address || ''),
+                              invoice_address: String(s.invoice_address || ''),
+                              is_einvoice_registered: Number(s.is_einvoice_registered) === 1,
                               notes: String(s.notes || ''),
                             });
                             setShowSupplierForm(true);
@@ -626,6 +630,11 @@ export default function SuppliersPage() {
                 <div className="form-group"><label>İl</label><input className="form-input" value={supplierForm.city} onChange={(e) => setSupplierForm({ ...supplierForm, city: e.target.value })} /></div>
                 <div className="form-group"><label>İlçe</label><input className="form-input" value={supplierForm.district} onChange={(e) => setSupplierForm({ ...supplierForm, district: e.target.value })} /></div>
                 <div className="form-group" style={{ gridColumn: 'span 2' }}><label>Adres</label><input className="form-input" value={supplierForm.address} onChange={(e) => setSupplierForm({ ...supplierForm, address: e.target.value })} /></div>
+                <div className="form-group" style={{ gridColumn: 'span 2' }}><label>Fatura Adresi</label><input className="form-input" value={supplierForm.invoice_address} onChange={(e) => setSupplierForm({ ...supplierForm, invoice_address: e.target.value })} /></div>
+                <label className="checkbox-label" style={{ alignSelf: 'end' }}>
+                  <input type="checkbox" checked={supplierForm.is_einvoice_registered} onChange={(e) => setSupplierForm({ ...supplierForm, is_einvoice_registered: e.target.checked })} />
+                  E-fatura mükellefi
+                </label>
               </div>
               <button type="button" className="btn btn-primary" onClick={saveSupplier}>Kaydet</button>
             </div>

@@ -484,6 +484,31 @@ export const ipc = {
       invoke<{ exported: boolean; filePath?: string }>('sgkInvoices:exportExcel', batchId),
     print: (batchId: number) => invoke<{ html: string }>('sgkInvoices:print', batchId),
   },
+  invoiceDrafts: {
+    list: (filters?: Record<string, unknown>) => invoke<unknown[]>('invoiceDrafts:list', filters),
+    getById: (id: number) => invoke<Record<string, unknown> | null>('invoiceDrafts:getById', id),
+    createFromSale: (input: Record<string, unknown>) =>
+      invoke<{ draftId: number; warning?: string }>('invoiceDrafts:createFromSale', input),
+    createFromPurchase: (input: Record<string, unknown>) =>
+      invoke<{ draftId: number }>('invoiceDrafts:createFromPurchase', input),
+    createFromSgkBatch: (input: Record<string, unknown>) =>
+      invoke<{ draftId: number }>('invoiceDrafts:createFromSgkBatch', input),
+    createFromStockEntry: (input: Record<string, unknown>) =>
+      invoke<{ draftId: number }>('invoiceDrafts:createFromStockEntry', input),
+    updateStatus: (id: number, status: string) => invoke<{ id: number }>('invoiceDrafts:updateStatus', id, status),
+    markOfficial: (input: Record<string, unknown>) => invoke<{ id: number }>('invoiceDrafts:markOfficial', input),
+    cancel: (id: number) => invoke<{ id: number }>('invoiceDrafts:cancel', id),
+    exportExcel: (draftId: number) =>
+      invoke<{ exported: boolean; filePath?: string }>('invoiceDrafts:exportExcel', draftId),
+    exportXml: (draftId: number) =>
+      invoke<{ exported: boolean; filePath?: string }>('invoiceDrafts:exportXml', draftId),
+    printHtml: (draftId: number) => invoke<{ html: string }>('invoiceDrafts:printHtml', draftId),
+    getReport: (filters?: Record<string, unknown>) => invoke<Record<string, unknown>>('invoiceDrafts:getReport', filters),
+  },
+  einvoiceSettings: {
+    get: () => invoke<Record<string, unknown>>('einvoiceSettings:get'),
+    update: (input: Record<string, unknown>) => invoke<Record<string, unknown>>('einvoiceSettings:update', input),
+  },
   uts: {
     listRecords: (filters?: import('@/types/medula').UtsListFilters) =>
       invoke<import('@/types/medula').UtsRecord[]>('uts:listRecords', filters),
@@ -556,6 +581,8 @@ export const ipc = {
       invoke<Record<string, unknown>>('reports:getPurchaseReport', filters),
     getSupplierAccountReport: (filters?: Record<string, unknown>) =>
       invoke<Record<string, unknown>>('reports:getSupplierAccountReport', filters),
+    getEdonusumReport: (filters?: Record<string, unknown>) =>
+      invoke<Record<string, unknown>>('reports:getEdonusumReport', filters),
     exportExcel: (payload: { fileName: string; rows: Record<string, unknown>[]; sheetName?: string }) =>
       invoke<{ exported: boolean; filePath?: string }>('reports:exportExcel', payload),
     print: (payload: import('@/types/reports').PrintReportPayload) =>

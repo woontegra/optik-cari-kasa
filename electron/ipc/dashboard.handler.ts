@@ -8,6 +8,7 @@ import { AppointmentService } from '../services/appointment.service';
 import { CustomerService } from '../services/customer.service';
 import { UtsOperationService } from '../services/utsOperation.service';
 import { MedulaOperationService } from '../services/medulaOperation.service';
+import { InvoiceDraftService } from '../services/invoiceDraft.service';
 import { TitubbExportService } from '../services/titubbExport.service';
 import { UtsTrackingService } from '../services/utsTracking.service';
 import { requirePermission } from './authGuard';
@@ -100,6 +101,7 @@ export function registerDashboardHandlers(ipcMain: IpcMain): void {
       const utsOpService = new UtsOperationService(db());
       const medulaOpService = new MedulaOperationService(db());
       const medulaV2Stats = medulaOpService.getDashboardStats();
+      const edonusumStats = new InvoiceDraftService(db()).getDashboardStats();
       const utsIncomplete = new UtsTrackingService(db()).countIncompleteProducts();
       const titubbPending = new TitubbExportService(db()).countPending();
 
@@ -191,6 +193,10 @@ export function registerDashboardHandlers(ipcMain: IpcMain): void {
         sgkInvoiceReady: medulaV2Stats.sgkInvoiceReady,
         institutionReceivableTotal: medulaV2Stats.institutionReceivableTotal,
         institutionReceivableCount: medulaV2Stats.institutionReceivableCount,
+        invoiceDraftCount: edonusumStats.invoiceDraftCount,
+        invoiceExportPending: edonusumStats.invoiceExportPending,
+        invoiceMissingInfo: edonusumStats.invoiceMissingInfo,
+        sgkInvoiceReadyForEdonusum: edonusumStats.sgkInvoiceReadyForEdonusum,
         utsIncomplete,
         titubbPending,
         pendingPurchaseCount: pendingPurchasePayments.count,

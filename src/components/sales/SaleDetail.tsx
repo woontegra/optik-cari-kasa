@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { ipc } from '@/services/ipc';
 import { formatCurrency, formatDateTime } from '@/utils/format';
 import { openPrintPreview } from '@/utils/print';
+import { useAuth } from '@/context/AuthContext';
+import { PERMISSIONS } from '@/types/auth';
 import type { AddPaymentInput, SaleDetail as SaleDetailType } from '@/types/electron';
 import { CASH_PAYMENT_TYPES } from '@/types/electron';
 import type { SaleReturnHistory } from '@/types/returns';
@@ -32,6 +34,8 @@ function groupReturns(rows: SaleReturnHistory[] = []): SaleReturnHistory[] {
 }
 
 export default function SaleDetail({ saleId, onClose, onUpdated }: SaleDetailProps) {
+  const { hasPermission } = useAuth();
+  const canCreateDraft = hasPermission(PERMISSIONS.EINVOICE_EDIT);
   const [sale, setSale] = useState<SaleDetailType | null>(null);
   const [loading, setLoading] = useState(true);
   const [showPayment, setShowPayment] = useState(false);
@@ -43,6 +47,8 @@ export default function SaleDetail({ saleId, onClose, onUpdated }: SaleDetailPro
   const [payDesc, setPayDesc] = useState('');
   const [error, setError] = useState('');
   const [toast, setToast] = useState('');
+  const [draftDocType, setDraftDocType] = useState('E-Arşiv');
+  const [showDraft, setShowDraft] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -90,6 +96,29 @@ export default function SaleDetail({ saleId, onClose, onUpdated }: SaleDetailPro
       openPrintPreview(doc);
     } catch (err) {
       alert((err as Error).message);
+    }
+  };
+
+  const handleCreateDraft = async (force = false) => {
+    setError('');
+    try {
+      const r = await ipc.invoiceDrafts.createFromSale({
+        sale_id: saleId,
+        document_type: draftDocType,
+        force,
+      });
+      setToast(`Fatura taslağı oluşturuldu (#${r.draftId})`);
+      if (r.warning) setError(r.warning);
+      setShowDraft(false);
+    } catch (err) {
+      const msg = (err as Error).message;
+      if (!force && msg.includes('zaten fatura taslağı')) {
+        if (confirm(`${msg}\n\nYine de oluşturmak istiyor musunuz?`)) {
+          await handleCreateDraft(true);
+        }
+      } else {
+        setError(msg);
+      }
     }
   };
 
@@ -295,11 +324,35 @@ export default function SaleDetail({ saleId, onClose, onUpdated }: SaleDetailPro
               </div>
             </div>
           )}
+          {showDraft && !isCancelled && sale.status === 'Tamamlandı' && canCreateDraft && (
+            <div className="panel" style={{ marginTop: 8 }}>
+              <div className="panel-header">Fatura Taslağı Oluştur</div>
+              <div className="panel-body">
+                <p style={{ fontSize: 11, color: '#666', margin: '0 0 8px' }}>
+                  Bu işlem e-fatura/e-arşiv hazırlık taslağı oluşturur. Resmi gönderim entegratörünüz üzerinden yapılır.
+                </p>
+                <div className="form-group">
+                  <label>Belge Türü</label>
+                  <select className="form-select" value={draftDocType} onChange={(e) => setDraftDocType(e.target.value)}>
+                    <option value="E-Arşiv">E-Arşiv</option>
+                    <option value="E-Fatura">E-Fatura</option>
+                    <option value="Kağıt Fatura Notu">Kağıt Fatura Notu</option>
+                    <option value="Bilgi Fişi">Bilgi Fişi</option>
+                  </select>
+                </div>
+                <button className="btn btn-primary" onClick={() => handleCreateDraft()}>Taslak Oluştur</button>
+                <button className="btn" style={{ marginLeft: 6 }} onClick={() => setShowDraft(false)}>Vazgeç</button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="product-form-footer">
           {sale.remaining_amount > 0 && !isCancelled && (
             <button className="btn btn-primary" onClick={() => setShowPayment(true)}>Tahsilat Ekle</button>
+          )}
+          {!isCancelled && sale.status === 'Tamamlandı' && canCreateDraft && (
+            <button className="btn" onClick={() => setShowDraft(true)}>Fatura Taslağı Oluştur</button>
           )}
           <button className="btn" onClick={handlePrintSale}>Satış Fişi Yazdır</button>
           {!isCancelled && sale.status === 'Tamamlandı' && (

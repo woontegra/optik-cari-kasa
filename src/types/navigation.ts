@@ -75,6 +75,7 @@ export const MENU_GROUPS: MenuGroupDef[] = [
     icon: '⊕',
     items: [
       { path: '/medula', label: 'Medula / ÜTS', icon: '⊕', permission: PERMISSIONS.MEDULA_VIEW },
+      { path: '/e-donusum', label: 'E-Dönüşüm', icon: '▦', permission: PERMISSIONS.EINVOICE_VIEW },
       { path: '/medula', label: 'TİTUBB Bildirimi', icon: '▦', permission: PERMISSIONS.MEDULA_VIEW, search: '?tab=titubb' },
     ],
   },
@@ -231,6 +232,7 @@ export const DASHBOARD_MODULES: DashboardModuleDef[] = [
     description: 'Medula, ÜTS ve TİTUBB bildirim hazırlıkları.',
     quickLinks: [
       { label: 'Medula / ÜTS', path: '/medula', permission: PERMISSIONS.MEDULA_VIEW },
+      { label: 'E-Dönüşüm', path: '/e-donusum', permission: PERMISSIONS.EINVOICE_VIEW },
       { label: 'TİTUBB Bildirimi', path: '/medula', search: '?tab=titubb', permission: PERMISSIONS.MEDULA_VIEW },
     ],
   },

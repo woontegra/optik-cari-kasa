@@ -258,6 +258,10 @@ export interface DashboardStats {
   medulaPending: number;
   medulaMissingInfo?: number;
   sgkInvoiceReady?: number;
+  invoiceDraftCount?: number;
+  invoiceExportPending?: number;
+  invoiceMissingInfo?: number;
+  sgkInvoiceReadyForEdonusum?: number;
   institutionReceivableTotal?: number;
   institutionReceivableCount?: number;
   utsIncomplete: number;

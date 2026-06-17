@@ -24,6 +24,7 @@ import { registerMedulaHandlers } from './medula.handler';
 import { registerMedulaOperationHandlers } from './medulaOperation.handler';
 import { registerInstitutionReceivableHandlers } from './institutionReceivable.handler';
 import { registerSgkInvoiceHandlers } from './sgkInvoice.handler';
+import { registerInvoiceDraftHandlers } from './invoiceDraft.handler';
 import { registerUtsHandlers } from './uts.handler';
 import { registerReportHandlers } from './reports.handler';
 import { registerUserHandlers } from './users.handler';
@@ -58,6 +59,7 @@ export function registerIpcHandlers(ipcMain: IpcMain): void {
   registerMedulaOperationHandlers(ipcMain, dialog);
   registerInstitutionReceivableHandlers(ipcMain);
   registerSgkInvoiceHandlers(ipcMain, dialog);
+  registerInvoiceDraftHandlers(ipcMain, dialog);
   registerUtsHandlers(ipcMain, dialog);
   registerReportHandlers(ipcMain, dialog);
   registerBackupHandlers(ipcMain, dialog);

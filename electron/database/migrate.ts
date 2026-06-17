@@ -152,6 +152,22 @@ const CUSTOMER_V2_COLUMNS: Array<{ name: string; ddl: string }> = [
   { name: 'is_vip', ddl: 'INTEGER DEFAULT 0' },
 ];
 
+const CUSTOMER_EINVOICE_COLUMNS: Array<{ name: string; ddl: string }> = [
+  { name: 'invoice_title', ddl: 'TEXT' },
+  { name: 'tax_office', ddl: 'TEXT' },
+  { name: 'tax_no', ddl: 'TEXT' },
+  { name: 'invoice_address', ddl: 'TEXT' },
+  { name: 'invoice_city', ddl: 'TEXT' },
+  { name: 'invoice_district', ddl: 'TEXT' },
+  { name: 'is_einvoice_registered', ddl: 'INTEGER DEFAULT 0' },
+  { name: 'invoice_party_type', ddl: "TEXT DEFAULT 'Bireysel'" },
+];
+
+const SUPPLIER_EINVOICE_COLUMNS: Array<{ name: string; ddl: string }> = [
+  { name: 'invoice_address', ddl: 'TEXT' },
+  { name: 'is_einvoice_registered', ddl: 'INTEGER DEFAULT 0' },
+];
+
 const PRESCRIPTION_COLUMNS: Array<{ name: string; ddl: string }> = [
   { name: 'lens_type', ddl: 'TEXT' },
   { name: 'usage_type', ddl: 'TEXT' },
@@ -415,6 +431,9 @@ export function runColumnMigrations(db: Database.Database): void {
     addColumnIfMissing(db, 'license_info', col.name, col.ddl);
   }
   for (const col of SUPPLIER_COLUMNS) {
+    addColumnIfMissing(db, 'suppliers', col.name, col.ddl);
+  }
+  for (const col of SUPPLIER_EINVOICE_COLUMNS) {
     addColumnIfMissing(db, 'suppliers', col.name, col.ddl);
   }
 
@@ -986,6 +1005,9 @@ export function runColumnMigrations(db: Database.Database): void {
   for (const col of CUSTOMER_V2_COLUMNS) {
     addColumnIfMissing(db, 'customers', col.name, col.ddl);
   }
+  for (const col of CUSTOMER_EINVOICE_COLUMNS) {
+    addColumnIfMissing(db, 'customers', col.name, col.ddl);
+  }
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS customer_important_dates (
@@ -1216,6 +1238,106 @@ export function runColumnMigrations(db: Database.Database): void {
     CREATE INDEX IF NOT EXISTS idx_medula_ops_date ON medula_operations(operation_date, operation_type);
     CREATE INDEX IF NOT EXISTS idx_sgk_batch_status ON sgk_invoice_batches(status, date_from);
   `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS einvoice_settings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      provider_name TEXT,
+      usage_mode TEXT DEFAULT 'Manuel aktarım',
+      company_title TEXT,
+      tax_no TEXT,
+      tax_office TEXT,
+      is_einvoice_taxpayer INTEGER DEFAULT 0,
+      default_scenario TEXT DEFAULT 'E-Arşiv',
+      default_vat_rate REAL DEFAULT 18,
+      default_note TEXT,
+      api_enabled INTEGER DEFAULT 0,
+      api_base_url TEXT,
+      api_key_masked TEXT,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      updated_at TEXT DEFAULT (datetime('now', 'localtime'))
+    );
+
+    CREATE TABLE IF NOT EXISTS invoice_drafts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      draft_no TEXT NOT NULL,
+      source_type TEXT NOT NULL,
+      source_id INTEGER,
+      sale_id INTEGER,
+      purchase_document_id INTEGER,
+      sgk_invoice_batch_id INTEGER,
+      stock_entry_batch_id INTEGER,
+      customer_id INTEGER,
+      supplier_id INTEGER,
+      document_type TEXT NOT NULL,
+      scenario_type TEXT,
+      issue_date TEXT NOT NULL,
+      due_date TEXT,
+      currency TEXT DEFAULT 'TRY',
+      subtotal_amount REAL DEFAULT 0,
+      discount_amount REAL DEFAULT 0,
+      vat_amount REAL DEFAULT 0,
+      total_amount REAL DEFAULT 0,
+      status TEXT NOT NULL DEFAULT 'Taslak',
+      official_invoice_no TEXT,
+      official_uuid TEXT,
+      official_date TEXT,
+      status_note TEXT,
+      exported_at TEXT,
+      processed_at TEXT,
+      notes TEXT,
+      created_by INTEGER,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      updated_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (sale_id) REFERENCES sales(id),
+      FOREIGN KEY (purchase_document_id) REFERENCES purchase_documents(id),
+      FOREIGN KEY (sgk_invoice_batch_id) REFERENCES sgk_invoice_batches(id),
+      FOREIGN KEY (stock_entry_batch_id) REFERENCES stock_entry_batches(id),
+      FOREIGN KEY (customer_id) REFERENCES customers(id),
+      FOREIGN KEY (supplier_id) REFERENCES suppliers(id),
+      FOREIGN KEY (created_by) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS invoice_draft_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      invoice_draft_id INTEGER NOT NULL,
+      product_id INTEGER,
+      description TEXT,
+      barcode TEXT,
+      quantity REAL NOT NULL DEFAULT 1,
+      unit_price REAL NOT NULL DEFAULT 0,
+      discount_amount REAL DEFAULT 0,
+      vat_rate REAL DEFAULT 18,
+      vat_amount REAL DEFAULT 0,
+      line_total REAL DEFAULT 0,
+      serial_no TEXT,
+      lot_no TEXT,
+      expiry_date TEXT,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (invoice_draft_id) REFERENCES invoice_drafts(id) ON DELETE CASCADE,
+      FOREIGN KEY (product_id) REFERENCES products(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS invoice_draft_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      invoice_draft_id INTEGER NOT NULL,
+      status TEXT NOT NULL,
+      description TEXT,
+      created_by INTEGER,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (invoice_draft_id) REFERENCES invoice_drafts(id) ON DELETE CASCADE,
+      FOREIGN KEY (created_by) REFERENCES users(id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_invoice_drafts_status ON invoice_drafts(status, issue_date);
+    CREATE INDEX IF NOT EXISTS idx_invoice_drafts_sale ON invoice_drafts(sale_id);
+    CREATE INDEX IF NOT EXISTS idx_invoice_drafts_source ON invoice_drafts(source_type, source_id);
+  `);
+
+  const settingsCount = db.prepare(`SELECT COUNT(*) as c FROM einvoice_settings`).get() as { c: number };
+  if (settingsCount.c === 0) {
+    db.prepare(`INSERT INTO einvoice_settings (provider_name, usage_mode) VALUES ('Diğer', 'Manuel aktarım')`).run();
+  }
 
   db.prepare(`UPDATE prescriptions SET medula_status = 'Medula''ya İşlendi' WHERE medula_status = 'Manuel Yüklendi'`).run();
 

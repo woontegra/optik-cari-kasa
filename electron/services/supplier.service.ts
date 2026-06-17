@@ -88,8 +88,8 @@ export class SupplierService {
       .prepare(
         `INSERT INTO suppliers (
           name, authorized_person, phone, email, tax_office, tax_no,
-          city, district, address, notes, is_active, balance
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0)`
+          city, district, address, invoice_address, is_einvoice_registered, notes, is_active, balance
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0)`
       )
       .run(
         input.name.trim(),
@@ -101,6 +101,8 @@ export class SupplierService {
         input.city?.trim() || null,
         input.district?.trim() || null,
         input.address?.trim() || null,
+        input.invoice_address?.trim() || null,
+        input.is_einvoice_registered ? 1 : 0,
         input.notes?.trim() || null
       );
     return { id: Number(result.lastInsertRowid) };
@@ -117,7 +119,7 @@ export class SupplierService {
       .prepare(
         `UPDATE suppliers SET
           name = ?, authorized_person = ?, phone = ?, email = ?, tax_office = ?, tax_no = ?,
-          city = ?, district = ?, address = ?, notes = ?,
+          city = ?, district = ?, address = ?, invoice_address = ?, is_einvoice_registered = ?, notes = ?,
           updated_at = datetime('now', 'localtime')
          WHERE id = ?`
       )
@@ -131,6 +133,8 @@ export class SupplierService {
         input.city?.trim() || null,
         input.district?.trim() || null,
         input.address?.trim() || null,
+        input.invoice_address?.trim() || null,
+        input.is_einvoice_registered ? 1 : 0,
         input.notes?.trim() || null,
         id
       );

@@ -8,7 +8,8 @@ export type ReportTab =
   | 'returnCancel'
   | 'purchase'
   | 'supplierAccount'
-  | 'utsOperations';
+  | 'utsOperations'
+  | 'edonusum';
 
 export type StockReportType =
   | 'current'
@@ -119,6 +120,7 @@ export const REPORT_TAB_LABELS: Record<ReportTab, string> = {
   purchase: 'Alış Raporu',
   supplierAccount: 'Tedarikçi Cari Raporu',
   utsOperations: 'ÜTS Operasyon Raporu',
+  edonusum: 'E-Dönüşüm Raporu',
 };
 
 export const STOCK_REPORT_TYPES: Array<{ value: StockReportType; label: string }> = [

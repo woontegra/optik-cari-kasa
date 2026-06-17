@@ -1,6 +1,7 @@
 import type { IpcMain, dialog } from 'electron';
 import { getDatabase } from '../database';
 import { ReportService, ReportValidationError } from '../services/report.service';
+import { InvoiceDraftService } from '../services/invoiceDraft.service';
 import { requirePermission } from './authGuard';
 import { PERMISSIONS } from '../types/permission';
 import { handleIpcError } from './ipcHelpers';
@@ -55,6 +56,10 @@ export function registerReportHandlers(ipcMain: IpcMain, dialogModule: typeof di
   ipcMain.handle('reports:getPrescriptionMedulaReport', (_event, filters?: PrescriptionMedulaReportFilter) =>
     guarded(() => getService().getPrescriptionMedulaReport(filters))
   );
+  ipcMain.handle('reports:getEdonusumReport', (_event, filters?: import('../types/invoiceDraft').InvoiceDraftReportFilters) =>
+    guarded(() => new InvoiceDraftService(getDatabase()!).getReport(filters))
+  );
+
   ipcMain.handle('reports:getReturnCancelReport', (_event, filters?: ReturnCancelReportFilter) =>
     guarded(() => getService().getReturnCancelReport(filters))
   );

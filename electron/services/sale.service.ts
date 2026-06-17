@@ -8,6 +8,9 @@ import { CashService } from './cash.service';
 import { PosService } from './pos.service';
 import { CampaignService } from './campaign.service';
 import type { ManualDiscountInput } from '../types/campaign';
+import type { InstitutionPaymentInput } from '../types/institutionReceivable';
+import { InstitutionReceivableService } from './institutionReceivable.service';
+import { isInstitutionPrescriptionType } from '../utils/medulaValidation.util';
 
 export interface CompleteSaleOptions {
   items: SaleItemInput[];
@@ -19,6 +22,7 @@ export interface CompleteSaleOptions {
   posAccountId?: number | null;
   campaignCode?: string | null;
   manualDiscount?: ManualDiscountInput | null;
+  institutionPayment?: InstitutionPaymentInput | null;
 }
 
 export class SaleValidationError extends Error {
@@ -175,6 +179,7 @@ export class SaleService {
       posAccountId,
       campaignCode,
       manualDiscount,
+      institutionPayment,
     } = options;
 
     if (!items.length) {
@@ -364,6 +369,35 @@ export class SaleService {
             `UPDATE customers SET last_sale_date = datetime('now', 'localtime'), updated_at = datetime('now', 'localtime') WHERE id = ?`
           )
           .run(customerId);
+      }
+
+      if (institutionPayment && prescriptionId) {
+        const pr = this.db
+          .prepare(`SELECT prescription_type FROM prescriptions WHERE id = ?`)
+          .get(prescriptionId) as { prescription_type: string } | undefined;
+        if (pr && isInstitutionPrescriptionType(pr.prescription_type)) {
+          const ip = institutionPayment;
+          const patientAmt = ip.patient_amount ?? 0;
+          const institutionAmt = ip.institution_amount ?? 0;
+          const contribution = ip.contribution_amount ?? 0;
+          const diffFee = ip.difference_fee ?? 0;
+          const collected = ip.collected_patient_amount ?? paid;
+
+          this.db
+            .prepare(
+              `UPDATE sales SET patient_amount = ?, institution_amount = ?, contribution_amount = ?,
+               difference_fee = ?, collected_patient_amount = ?, institution_payment_note = ?,
+               updated_at = datetime('now', 'localtime') WHERE id = ?`
+            )
+            .run(patientAmt, institutionAmt, contribution, diffFee, collected, ip.notes || null, saleId);
+
+          if (institutionAmt > 0) {
+            new InstitutionReceivableService(this.db).createOrUpdateFromSale(saleId, {
+              ...ip,
+              collected_patient_amount: collected,
+            });
+          }
+        }
       }
 
       return { saleId, saleNo };

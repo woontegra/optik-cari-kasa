@@ -34,6 +34,7 @@ export interface CompleteSalePayload {
   posAccountId?: number | null;
   campaignCode?: string | null;
   manualDiscount?: ManualDiscountInput | null;
+  institutionPayment?: import('../types/institutionReceivable').InstitutionPaymentInput | null;
 }
 
 export function registerSalesHandlers(ipcMain: IpcMain): void {
@@ -84,6 +85,7 @@ export function registerSalesHandlers(ipcMain: IpcMain): void {
         posAccountId: payload.posAccountId,
         campaignCode: payload.campaignCode,
         manualDiscount: payload.manualDiscount,
+        institutionPayment: payload.institutionPayment,
       });
       auditAction(session.id, 'Oluşturma', 'Satış', `Satış oluşturuldu: ${result.saleNo}`, {
         entityType: 'sale',

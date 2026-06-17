@@ -3,6 +3,7 @@ import path from 'path';
 import * as XLSX from 'xlsx';
 import type Database from 'better-sqlite3';
 import type { MedulaListFilters, MedulaValidationResult } from '../types/medula';
+import { validateMedulaSaleRecord, missingFieldsSummary } from '../utils/medulaValidation.util';
 
 export class MedulaExportError extends Error {
   constructor(message: string) {
@@ -25,53 +26,11 @@ export class MedulaExportService {
   constructor(private db: Database.Database) {}
 
   validateRecord(saleId: number): MedulaValidationResult {
-    const detail = this.getRecordDetail(saleId);
-    if (!detail) {
-      return { saleId, isValid: false, errors: ['Kayıt bulunamadı.'], warnings: [] };
-    }
-
-    const errors: string[] = [];
-    const warnings: string[] = [];
-    const sale = detail.sale as Record<string, unknown>;
-    const customer = detail.customer as Record<string, unknown>;
-    const prescription = detail.prescription as Record<string, unknown>;
-    const items = detail.items as Array<Record<string, unknown>>;
-
-    if (!customer.full_name) errors.push('Müşteri adı eksik');
-    const tc = String(prescription.patient_tc || customer.tc_no || '').trim();
-    if (!tc) errors.push('T.C. kimlik no eksik');
-
-    const rxNo = String(prescription.prescription_no || '').trim();
-    const eRxNo = String(prescription.e_prescription_no || '').trim();
-    if (!rxNo && !eRxNo) errors.push('Reçete no veya e-reçete no eksik');
-
-    if (!prescription.prescription_date) errors.push('Reçete tarihi eksik');
-
-    if (!hasEyeData(prescription, 'right') && !hasEyeData(prescription, 'left')) {
-      errors.push('Sağ veya sol göz bilgisi eksik');
-    }
-
-    if (!items.length) errors.push('Satış kalemi yok');
-
-    for (const item of items) {
-      if (!item.barcode) errors.push(`Ürün barkodu eksik: ${item.product_name}`);
-      const ubb = item.ubb_code;
-      const utsNo = item.uts_product_no;
-      if (!ubb && !utsNo) {
-        warnings.push(`UBB/ÜTS bilgisi eksik: ${item.product_name}`);
-      }
-    }
-
-    return { saleId, isValid: errors.length === 0, errors, warnings };
+    return validateMedulaSaleRecord(this.db, saleId);
   }
 
   private computeMissingSummary(saleId: number): { missing_fields: string; missing_count: number } {
-    const v = this.validateRecord(saleId);
-    const all = [...v.errors, ...v.warnings];
-    return {
-      missing_fields: all.join('; ') || '-',
-      missing_count: all.length,
-    };
+    return missingFieldsSummary(this.validateRecord(saleId));
   }
 
   listReadyRecords(filters: MedulaListFilters = {}): Record<string, unknown>[] {
@@ -116,6 +75,9 @@ export class MedulaExportService {
     if (filters.prescription_type) {
       sql += ` AND pr.prescription_type = ?`;
       params.push(filters.prescription_type);
+    }
+    if (filters.only_institution) {
+      sql += ` AND pr.prescription_type IN ('SGK', 'Kurum', 'Tamamlayıcı')`;
     }
 
     sql += ` ORDER BY s.sale_date DESC, s.id DESC`;
@@ -220,7 +182,10 @@ export class MedulaExportService {
       'E-Reçete No': String(prescription.e_prescription_no || ''),
       'Reçete Tarihi': String(prescription.prescription_date || ''),
       'Hasta Ad Soyad': String(customer.full_name || ''),
-      'Hasta T.C.': String(prescription.patient_tc || customer.tc_no || ''),
+      'T.C.': String(prescription.patient_tc || customer.tc_no || ''),
+      'E-Rapor No': String(prescription.e_report_no || ''),
+      'Provizyon No': String(prescription.provision_no || ''),
+      'Medula Takip No': String(prescription.sgk_tracking_no || ''),
       Telefon: String((sale as Record<string, unknown>).customer_phone || ''),
       Doktor: String(prescription.doctor || ''),
       Kurum: String(prescription.institution || ''),
@@ -240,7 +205,10 @@ export class MedulaExportService {
       'Seri No': String(item.serial_no || ''),
       'Lot No': String(item.lot_no || ''),
       'Satış Tarihi': String(sale.sale_date || ''),
-      'Teslim Tarihi': String(sale.delivery_date || ''),
+      'Teslim Tarihi': String(sale.delivery_date || prescription.rx_delivery_date || ''),
+      'Toplam Tutar': Number(sale.net_amount) || 0,
+      'Hasta Payı': Number(sale.patient_amount) || 0,
+      'Kurum Karşılığı': Number(sale.institution_amount) || 0,
       'Medula Durumu': String(prescription.medula_status || ''),
       Not: String(prescription.medula_note || prescription.notes || ''),
     };

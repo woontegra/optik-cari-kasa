@@ -21,6 +21,9 @@ import { registerPrintHandlers } from './print.handler';
 import { registerImportExportHandlers } from './importExport.handler';
 import { registerLabelHandlers, registerLabelSettingsHandlers } from './labels.handler';
 import { registerMedulaHandlers } from './medula.handler';
+import { registerMedulaOperationHandlers } from './medulaOperation.handler';
+import { registerInstitutionReceivableHandlers } from './institutionReceivable.handler';
+import { registerSgkInvoiceHandlers } from './sgkInvoice.handler';
 import { registerUtsHandlers } from './uts.handler';
 import { registerReportHandlers } from './reports.handler';
 import { registerUserHandlers } from './users.handler';
@@ -34,6 +37,7 @@ import { registerOpticalLookupHandlers } from './opticalLookup.handler';
 import { registerFinanceHandlers } from './finance.handler';
 import { registerCampaignHandlers } from './campaign.handler';
 import { registerCustomerTrackingHandlers } from './customerTracking.handler';
+import { registerUtsOperationHandlers } from './utsOperation.handler';
 
 export function registerIpcHandlers(ipcMain: IpcMain): void {
   registerLicenseHandlers(ipcMain);
@@ -51,6 +55,9 @@ export function registerIpcHandlers(ipcMain: IpcMain): void {
   registerLabelHandlers(ipcMain);
   registerLabelSettingsHandlers(ipcMain);
   registerMedulaHandlers(ipcMain, dialog);
+  registerMedulaOperationHandlers(ipcMain, dialog);
+  registerInstitutionReceivableHandlers(ipcMain);
+  registerSgkInvoiceHandlers(ipcMain, dialog);
   registerUtsHandlers(ipcMain, dialog);
   registerReportHandlers(ipcMain, dialog);
   registerBackupHandlers(ipcMain, dialog);
@@ -69,4 +76,5 @@ export function registerIpcHandlers(ipcMain: IpcMain): void {
   registerFinanceHandlers(ipcMain, dialog);
   registerCampaignHandlers(ipcMain);
   registerCustomerTrackingHandlers(ipcMain, dialog);
+  registerUtsOperationHandlers(ipcMain, dialog);
 }

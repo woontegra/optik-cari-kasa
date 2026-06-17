@@ -24,6 +24,10 @@ export const PERMISSIONS = {
   PRESCRIPTIONS_EDIT: 'prescriptions.edit',
   MEDULA_VIEW: 'medula.view',
   MEDULA_EXPORT: 'medula.export',
+  MEDULA_EDIT: 'medula.edit',
+  MEDULA_MARK_PROCESSED: 'medula.markProcessed',
+  SGK_VIEW: 'sgk.view',
+  SGK_EDIT: 'sgk.edit',
   REPORTS_VIEW: 'reports.view',
   EXCEL_EXPORT: 'excel.export',
   SETTINGS_EDIT: 'settings.edit',
@@ -41,6 +45,10 @@ export const PERMISSIONS = {
   APPOINTMENTS_EDIT: 'appointments.edit',
   COMMUNICATIONS_VIEW: 'communications.view',
   COMMUNICATIONS_EDIT: 'communications.edit',
+  UTS_VIEW: 'uts.view',
+  UTS_EDIT: 'uts.edit',
+  UTS_EXPORT: 'uts.export',
+  UTS_MARK_PROCESSED: 'uts.markProcessed',
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -78,6 +86,10 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
   'appointments.edit': 'Randevu oluşturma/düzenleme',
   'communications.view': 'İletişim geçmişi görüntüleme',
   'communications.edit': 'Mesaj hazırlama',
+  'uts.view': 'ÜTS operasyonları görüntüleme',
+  'uts.edit': 'ÜTS operasyonu hazırlama',
+  'uts.export': 'ÜTS Excel dışa aktarım',
+  'uts.markProcessed': 'ÜTS\'de işlendi işaretleme',
 };
 
 export interface UserSession {

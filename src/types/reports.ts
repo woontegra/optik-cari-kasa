@@ -7,7 +7,8 @@ export type ReportTab =
   | 'prescriptionMedula'
   | 'returnCancel'
   | 'purchase'
-  | 'supplierAccount';
+  | 'supplierAccount'
+  | 'utsOperations';
 
 export type StockReportType =
   | 'current'
@@ -117,6 +118,7 @@ export const REPORT_TAB_LABELS: Record<ReportTab, string> = {
   returnCancel: 'İade / İptal Raporu',
   purchase: 'Alış Raporu',
   supplierAccount: 'Tedarikçi Cari Raporu',
+  utsOperations: 'ÜTS Operasyon Raporu',
 };
 
 export const STOCK_REPORT_TYPES: Array<{ value: StockReportType; label: string }> = [

@@ -139,6 +139,7 @@ export const ipc = {
         posAccountId: options.posAccountId ?? null,
         campaignCode: options.campaignCode ?? null,
         manualDiscount: options.manualDiscount ?? null,
+        institutionPayment: options.institutionPayment ?? null,
       }),
     addPayment: (input: AddPaymentInput) => invoke<{ paymentId: number }>('sales:addPayment', input),
     cancel: (input: import('@/types/returns').CancelSaleInput) =>
@@ -447,6 +448,41 @@ export const ipc = {
     markExported: (saleIds: number[]) => invoke<{ updated: number }>('medula:markExported', saleIds),
     markUploaded: (saleIds: number[]) => invoke<{ updated: number }>('medula:markUploaded', saleIds),
     listExports: () => invoke<unknown[]>('medula:listExports'),
+    listPending: (filters?: import('@/types/medula').MedulaListFilters) =>
+      invoke<import('@/types/medula').MedulaRecordListItem[]>('medula:listPending', filters),
+    validateRows: (saleIds: number[]) =>
+      invoke<import('@/types/medula').MedulaValidationResult[]>('medula:validateRows', saleIds),
+    markProcessed: (saleIds: number[]) => invoke<{ updated: number }>('medula:markProcessed', saleIds),
+    markInvoiceReady: (saleIds: number[]) => invoke<{ updated: number }>('medula:markInvoiceReady', saleIds),
+    markIgnored: (saleIds: number[]) => invoke<{ updated: number }>('medula:markIgnored', saleIds),
+    enterMedulaInfo: (input: import('@/types/medulaV2').MedulaEnterInfoInput) =>
+      invoke<{ sale_id: number }>('medula:enterMedulaInfo', input),
+    listOperations: (filters?: Record<string, unknown>) => invoke<unknown[]>('medula:listOperations', filters),
+    getOperationDetail: (id: number) => invoke<Record<string, unknown> | null>('medula:getOperationDetail', id),
+    getReport: (filters?: Record<string, unknown>) => invoke<Record<string, unknown>>('medula:getReport', filters),
+    listSgkPrescriptions: (filters?: import('@/types/medulaV2').SgkPrescriptionListFilters) =>
+      invoke<import('@/types/medulaV2').SgkPrescriptionRow[]>('medula:listSgkPrescriptions', filters),
+    exportSgkExcel: (saleIds: number[]) =>
+      invoke<{ exported: boolean; filePath?: string }>('medula:exportSgkExcel', saleIds),
+    getDashboardStats: () => invoke<Record<string, number>>('medula:getDashboardStats'),
+  },
+  institutionReceivables: {
+    list: (filters?: Record<string, unknown>) => invoke<unknown[]>('institutionReceivables:list', filters),
+    updateStatus: (id: number, status: string) =>
+      invoke<{ id: number }>('institutionReceivables:updateStatus', id, status),
+    markCollected: (id: number) => invoke<{ id: number }>('institutionReceivables:markCollected', id),
+  },
+  sgkInvoices: {
+    listReady: (filters?: Record<string, unknown>) => invoke<unknown[]>('sgkInvoices:listReady', filters),
+    createBatch: (input: Record<string, unknown>) =>
+      invoke<{ batchId: number; batchNo: string }>('sgkInvoices:createBatch', input),
+    listBatches: (filters?: Record<string, unknown>) => invoke<unknown[]>('sgkInvoices:listBatches', filters),
+    getBatchDetail: (id: number) => invoke<Record<string, unknown> | null>('sgkInvoices:getBatchDetail', id),
+    markInvoiced: (batchId: number) => invoke<{ batchId: number }>('sgkInvoices:markInvoiced', batchId),
+    markCollected: (batchId: number) => invoke<{ batchId: number }>('sgkInvoices:markCollected', batchId),
+    exportExcel: (batchId: number) =>
+      invoke<{ exported: boolean; filePath?: string }>('sgkInvoices:exportExcel', batchId),
+    print: (batchId: number) => invoke<{ html: string }>('sgkInvoices:print', batchId),
   },
   uts: {
     listRecords: (filters?: import('@/types/medula').UtsListFilters) =>
@@ -471,6 +507,35 @@ export const ipc = {
     markUploaded: (exportId: number) => invoke<{ updated: number }>('titubb:markUploaded', exportId),
     markIgnored: (input: { row_keys: string[]; notes?: string }) => invoke<{ ignored: number }>('titubb:markIgnored', input),
     countPending: () => invoke<{ count: number }>('titubb:countPending'),
+  },
+  utsOperations: {
+    listPendingReceive: (filters?: import('@/types/utsOperation').UtsOperationListFilters) =>
+      invoke<import('@/types/utsOperation').UtsPendingRow[]>('utsOperations:listPendingReceive', filters),
+    listPendingGive: (filters?: import('@/types/utsOperation').UtsOperationListFilters) =>
+      invoke<import('@/types/utsOperation').UtsPendingRow[]>('utsOperations:listPendingGive', filters),
+    listPendingReturn: (filters?: import('@/types/utsOperation').UtsOperationListFilters) =>
+      invoke<import('@/types/utsOperation').UtsPendingRow[]>('utsOperations:listPendingReturn', filters),
+    createOperation: (input: Record<string, unknown>) =>
+      invoke<{ operationId: number; operationNo: string; itemCount: number }>('utsOperations:createOperation', input),
+    exportExcel: (operationId: number, operationType?: string) =>
+      invoke<{ exported: boolean; filePath?: string; rowCount?: number }>('utsOperations:exportExcel', operationId, operationType),
+    markProcessed: (operationIds: number[]) => invoke<{ updated: number }>('utsOperations:markProcessed', operationIds),
+    markIgnored: (input: { row_keys?: string[]; operation_ids?: number[]; reason: string; notes?: string }) =>
+      invoke<{ updated: number }>('utsOperations:markIgnored', input),
+    listHistory: (filters?: import('@/types/utsOperation').UtsOperationHistoryFilters) =>
+      invoke<Record<string, unknown>[]>('utsOperations:listHistory', filters),
+    getDetail: (operationId: number) => invoke<Record<string, unknown> | null>('utsOperations:getDetail', operationId),
+    importUtsFile: () =>
+      invoke<{ rows: import('@/types/utsOperation').UtsImportRow[]; filePath?: string; cancelled?: boolean }>(
+        'utsOperations:importUtsFile'
+      ),
+    createStockEntryFromImport: (payload: Record<string, unknown>) =>
+      invoke<{ batchId: number; batchNo: string; itemCount: number }>('utsOperations:createStockEntryFromImport', payload),
+    getReport: (filters?: Record<string, unknown>) => invoke<Record<string, unknown>>('utsOperations:getReport', filters),
+    getDashboardStats: () =>
+      invoke<{ pendingReceive: number; pendingGive: number; errorCount: number; titubbPending: number }>(
+        'utsOperations:getDashboardStats'
+      ),
   },
   reports: {
     getDayEnd: (filter?: import('@/types/reports').DayEndFilter) =>

@@ -108,9 +108,21 @@ export default function DashboardPage() {
           <div className="stat-label">Kritik Stok</div>
           <div className={`stat-value${stats.criticalStock > 0 ? ' amount-negative' : ''}`}>{stats.criticalStock}</div>
         </div>
-        <div className="stat-box stat-box-link" onClick={() => navigate('/raporlar?tab=prescriptionMedula')} role="button" tabIndex={0}>
+        <div className="stat-box stat-box-link" onClick={() => navigate('/medula?tab=tracking')} role="button" tabIndex={0}>
           <div className="stat-label">Medula Bekleyen</div>
           <div className={`stat-value${stats.medulaPending > 0 ? ' amount-negative' : ''}`}>{stats.medulaPending}</div>
+        </div>
+        <div className="stat-box stat-box-link" onClick={() => navigate('/medula?tab=sgk')} role="button" tabIndex={0}>
+          <div className="stat-label">Eksik Medula Bilgisi</div>
+          <div className={`stat-value${(stats.medulaMissingInfo ?? 0) > 0 ? ' amount-negative' : ''}`}>{stats.medulaMissingInfo ?? 0}</div>
+        </div>
+        <div className="stat-box stat-box-link" onClick={() => navigate('/medula?tab=sgkInvoice')} role="button" tabIndex={0}>
+          <div className="stat-label">SGK Faturaya Hazır</div>
+          <div className={`stat-value${(stats.sgkInvoiceReady ?? 0) > 0 ? ' amount-positive' : ''}`}>{stats.sgkInvoiceReady ?? 0}</div>
+        </div>
+        <div className="stat-box stat-box-link" onClick={() => navigate('/medula?tab=receivable')} role="button" tabIndex={0}>
+          <div className="stat-label">Kurum Alacağı</div>
+          <div className="stat-value amount-negative">{formatCurrency(stats.institutionReceivableTotal ?? 0)}</div>
         </div>
         <div className="stat-box">
           <div className="stat-label">Eksik ÜTS Bilgisi</div>
@@ -180,6 +192,27 @@ export default function DashboardPage() {
           </>
         )}
       </div>
+
+      {hasPermission(PERMISSIONS.UTS_VIEW) && (
+        <div className="stat-grid-6" style={{ marginBottom: 8 }}>
+          <div className="stat-box stat-box-link" onClick={() => navigate('/medula?tab=receive')} role="button" tabIndex={0}>
+            <div className="stat-label">ÜTS Alma Bekleyen</div>
+            <div className="stat-value">{stats.utsPendingReceive ?? 0}</div>
+          </div>
+          <div className="stat-box stat-box-link" onClick={() => navigate('/medula?tab=give')} role="button" tabIndex={0}>
+            <div className="stat-label">ÜTS Verme Bekleyen</div>
+            <div className="stat-value">{stats.utsPendingGive ?? 0}</div>
+          </div>
+          <div className="stat-box stat-box-link" onClick={() => navigate('/medula?tab=history')} role="button" tabIndex={0}>
+            <div className="stat-label">ÜTS Hatalı Kayıt</div>
+            <div className="stat-value amount-negative">{stats.utsErrorCount ?? 0}</div>
+          </div>
+          <div className="stat-box stat-box-link" onClick={() => navigate('/medula?tab=titubb')} role="button" tabIndex={0}>
+            <div className="stat-label">TİTUBB Bekleyen</div>
+            <div className="stat-value">{stats.utsTitubbPending ?? stats.titubbPending ?? 0}</div>
+          </div>
+        </div>
+      )}
 
       {hasPermission(PERMISSIONS.CUSTOMERS_VIEW) && (
         <div className="stat-grid-6" style={{ marginBottom: 8 }}>

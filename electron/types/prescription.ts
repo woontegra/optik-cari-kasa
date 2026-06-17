@@ -4,13 +4,18 @@ export const USAGE_TYPES = ['Uzak', 'Yakın', 'Progresif', 'Lens', 'Diğer'] as 
 export type PrescriptionStatus = (typeof PRESCRIPTION_STATUSES)[number];
 export type UsageType = (typeof USAGE_TYPES)[number];
 
-export const PRESCRIPTION_TYPES = ['Özel', 'SGK'] as const;
+export const PRESCRIPTION_TYPES = ['Özel', 'SGK', 'Kurum', 'Tamamlayıcı'] as const;
 export const MEDULA_STATUSES = [
   'Hazırlanmadı',
   'Hazır',
+  'Medula\'ya İşlendi',
+  'Eksik Bilgi',
+  'Hatalı',
+  'İptal',
+  'Faturaya Hazır',
+  'Faturalandı',
   'Dışa Aktarıldı',
   'Manuel Yüklendi',
-  'Hatalı',
 ] as const;
 
 export type PrescriptionType = (typeof PRESCRIPTION_TYPES)[number];
@@ -44,6 +49,11 @@ export interface PrescriptionInput {
   beneficiary_note?: string;
   medula_status?: MedulaStatus;
   medula_note?: string;
+  examination_date?: string;
+  rx_delivery_date?: string;
+  patient_card_no?: string;
+  doctor_branch?: string;
+  medula_approval_status?: string;
 }
 
 export interface PrescriptionListFilters {

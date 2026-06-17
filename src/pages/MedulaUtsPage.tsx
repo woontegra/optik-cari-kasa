@@ -5,20 +5,57 @@ import { formatDateTime } from '@/utils/format';
 import type { MedulaListFilters, MedulaRecordListItem, UtsListFilters, UtsRecord } from '@/types/medula';
 import { MEDULA_STATUSES, PRESCRIPTION_TYPES, UTS_STATUSES } from '@/types/medula';
 import TitubbNotificationTab from '@/components/medula/TitubbNotificationTab';
+import UtsOperationTab from '@/components/medula/UtsOperationTab';
+import UtsOperationHistoryTab from '@/components/medula/UtsOperationHistoryTab';
+import UtsAutoImportPanel from '@/components/medula/UtsAutoImportPanel';
+import SgkPrescriptionsTab from '@/components/medula/SgkPrescriptionsTab';
+import InstitutionReceivableTab from '@/components/medula/InstitutionReceivableTab';
+import SgkInvoiceTab from '@/components/medula/SgkInvoiceTab';
+import MedulaHistoryTab from '@/components/medula/MedulaHistoryTab';
+import MedulaTrackingTab from '@/components/medula/MedulaTrackingTab';
+import { MEDULA_V2_DISCLAIMER } from '@/types/medulaV2';
+import { useAuth } from '@/context/AuthContext';
+import { PERMISSIONS } from '@/types/auth';
 import '@/components/products/ProductForm.css';
 
-type PageTab = 'medula' | 'uts' | 'titubb';
+type PageTab =
+  | 'medula'
+  | 'tracking'
+  | 'sgk'
+  | 'receivable'
+  | 'sgkInvoice'
+  | 'medulaHistory'
+  | 'uts'
+  | 'titubb'
+  | 'receive'
+  | 'give'
+  | 'return'
+  | 'history';
 
-const MEDULA_DISCLAIMER =
-  'Bu dosya Medula işlemleri için veri hazırlama amacıyla oluşturulur. Kullanılacak kesin format, optik işletmenizin Medula işlem yöntemi ve güncel SGK ekranlarına göre kontrol edilmelidir.';
+const TAB_FROM_URL: Record<string, PageTab> = {
+  tracking: 'tracking',
+  sgk: 'sgk',
+  receivable: 'receivable',
+  sgkInvoice: 'sgkInvoice',
+  medulaHistory: 'medulaHistory',
+  uts: 'uts',
+  titubb: 'titubb',
+  receive: 'receive',
+  give: 'give',
+  return: 'return',
+  history: 'history',
+};
+
+const MEDULA_DISCLAIMER = MEDULA_V2_DISCLAIMER;
 
 export default function MedulaUtsPage() {
   const navigate = useNavigate();
+  const { hasPermission } = useAuth();
+  const canUts = hasPermission(PERMISSIONS.UTS_VIEW);
+  const canSgk = hasPermission(PERMISSIONS.SGK_VIEW);
   const [searchParams] = useSearchParams();
   const initialTab = searchParams.get('tab');
-  const [pageTab, setPageTab] = useState<PageTab>(
-    initialTab === 'titubb' || initialTab === 'uts' ? initialTab : 'medula'
-  );
+  const [pageTab, setPageTab] = useState<PageTab>(TAB_FROM_URL[initialTab || ''] || 'medula');
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState('');
   const [error, setError] = useState('');
@@ -136,9 +173,28 @@ export default function MedulaUtsPage() {
       {toast && <div className="toast-success">{toast}</div>}
       {error && <div className="alert alert-error" style={{ marginBottom: 8 }}>{error}</div>}
 
-      <div className="product-form-tabs" style={{ marginBottom: 8 }}>
+      <div className="product-form-tabs" style={{ marginBottom: 8, flexWrap: 'wrap' }}>
         <button type="button" className={`tab-btn${pageTab === 'medula' ? ' active' : ''}`} onClick={() => setPageTab('medula')}>
           Medula Dışa Aktarım
+        </button>
+        <button type="button" className={`tab-btn${pageTab === 'tracking' ? ' active' : ''}`} onClick={() => setPageTab('tracking')}>
+          Medula İşlem Takibi
+        </button>
+        {canSgk && (
+          <>
+            <button type="button" className={`tab-btn${pageTab === 'sgk' ? ' active' : ''}`} onClick={() => setPageTab('sgk')}>
+              SGK / Kurum Reçeteleri
+            </button>
+            <button type="button" className={`tab-btn${pageTab === 'receivable' ? ' active' : ''}`} onClick={() => setPageTab('receivable')}>
+              Katkı Payı / Kurum Hakkı
+            </button>
+            <button type="button" className={`tab-btn${pageTab === 'sgkInvoice' ? ' active' : ''}`} onClick={() => setPageTab('sgkInvoice')}>
+              SGK Fatura Hazırlığı
+            </button>
+          </>
+        )}
+        <button type="button" className={`tab-btn${pageTab === 'medulaHistory' ? ' active' : ''}`} onClick={() => setPageTab('medulaHistory')}>
+          Medula İşlem Geçmişi
         </button>
         <button type="button" className={`tab-btn${pageTab === 'uts' ? ' active' : ''}`} onClick={() => setPageTab('uts')}>
           ÜTS / UBB Takip
@@ -146,6 +202,22 @@ export default function MedulaUtsPage() {
         <button type="button" className={`tab-btn${pageTab === 'titubb' ? ' active' : ''}`} onClick={() => setPageTab('titubb')}>
           TİTUBB Bildirimi
         </button>
+        {canUts && (
+          <>
+            <button type="button" className={`tab-btn${pageTab === 'receive' ? ' active' : ''}`} onClick={() => setPageTab('receive')}>
+              ÜTS Alma Bildirimi
+            </button>
+            <button type="button" className={`tab-btn${pageTab === 'give' ? ' active' : ''}`} onClick={() => setPageTab('give')}>
+              ÜTS Verme Bildirimi
+            </button>
+            <button type="button" className={`tab-btn${pageTab === 'return' ? ' active' : ''}`} onClick={() => setPageTab('return')}>
+              ÜTS İade / Red
+            </button>
+            <button type="button" className={`tab-btn${pageTab === 'history' ? ' active' : ''}`} onClick={() => setPageTab('history')}>
+              ÜTS İşlem Geçmişi
+            </button>
+          </>
+        )}
       </div>
 
       {pageTab === 'medula' && (
@@ -237,7 +309,7 @@ export default function MedulaUtsPage() {
                   <button className="btn" style={{ width: '100%', marginBottom: 4 }} onClick={() => exportMedula('csv')}>CSV Dışa Aktar</button>
                   <button className="btn" style={{ width: '100%', marginBottom: 4 }} onClick={() => exportMedula('txt')}>TXT Dışa Aktar</button>
                   <button className="btn" style={{ width: '100%', marginBottom: 4 }} onClick={markExported}>Dışa Aktarıldı İşaretle</button>
-                  <button className="btn" style={{ width: '100%' }} onClick={markUploaded}>Manuel Yüklendi İşaretle</button>
+                  <button className="btn" style={{ width: '100%', marginBottom: 4 }} onClick={markUploaded}>Medula&apos;ya İşlendi (Manuel)</button>
                 </>
               )}
             </div>
@@ -245,7 +317,30 @@ export default function MedulaUtsPage() {
         </div>
       )}
 
+      {pageTab === 'tracking' && <MedulaTrackingTab />}
+
+      {pageTab === 'sgk' && canSgk && <SgkPrescriptionsTab onToast={setToast} onError={setError} />}
+
+      {pageTab === 'receivable' && canSgk && <InstitutionReceivableTab onToast={setToast} onError={setError} />}
+
+      {pageTab === 'sgkInvoice' && canSgk && <SgkInvoiceTab onToast={setToast} onError={setError} />}
+
+      {pageTab === 'medulaHistory' && <MedulaHistoryTab />}
+
       {pageTab === 'titubb' && <TitubbNotificationTab />}
+
+      {pageTab === 'receive' && canUts && (
+        <>
+          <UtsAutoImportPanel onToast={setToast} onError={setError} />
+          <UtsOperationTab mode="receive" onToast={setToast} onError={setError} />
+        </>
+      )}
+
+      {pageTab === 'give' && canUts && <UtsOperationTab mode="give" onToast={setToast} onError={setError} />}
+
+      {pageTab === 'return' && canUts && <UtsOperationTab mode="return" onToast={setToast} onError={setError} />}
+
+      {pageTab === 'history' && canUts && <UtsOperationHistoryTab onToast={setToast} />}
 
       {pageTab === 'uts' && (
         <div style={{ display: 'flex', gap: 8, flex: 1, overflow: 'hidden' }}>

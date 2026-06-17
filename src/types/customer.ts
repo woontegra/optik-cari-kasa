@@ -92,14 +92,19 @@ export interface PrescriptionInput {
   usage_type?: UsageType;
   notes?: string;
   status?: PrescriptionStatus;
-  prescription_type?: 'Özel' | 'SGK';
+  prescription_type?: 'Özel' | 'SGK' | 'Kurum' | 'Tamamlayıcı';
   e_report_no?: string;
   provision_no?: string;
   sgk_tracking_no?: string;
   institution_code?: string;
   doctor_registration_no?: string;
+  doctor_branch?: string;
   patient_tc?: string;
+  patient_card_no?: string;
   beneficiary_note?: string;
+  examination_date?: string;
+  rx_delivery_date?: string;
+  medula_approval_status?: string;
   medula_status?: string;
   medula_note?: string;
 }
@@ -115,13 +120,18 @@ export interface Prescription extends PrescriptionInput {
   updated_at?: string;
 }
 
-export const PRESCRIPTION_TYPES = ['Özel', 'SGK'] as const;
+export const PRESCRIPTION_TYPES = ['Özel', 'SGK', 'Kurum', 'Tamamlayıcı'] as const;
 export const MEDULA_STATUSES = [
   'Hazırlanmadı',
   'Hazır',
+  'Medula\'ya İşlendi',
+  'Eksik Bilgi',
+  'Hatalı',
+  'İptal',
+  'Faturaya Hazır',
+  'Faturalandı',
   'Dışa Aktarıldı',
   'Manuel Yüklendi',
-  'Hatalı',
 ] as const;
 export const UTS_STATUSES = ['Bekliyor', 'Hazır', 'İşlendi', 'Hatalı'] as const;
 

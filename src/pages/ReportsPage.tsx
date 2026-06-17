@@ -29,6 +29,7 @@ const TABS: ReportTab[] = [
   'customerAccount',
   'prescriptionMedula',
   'returnCancel',
+  'utsOperations',
 ];
 
 type LookupRow = { id: number; name: string; parent_id?: number | null };
@@ -288,6 +289,12 @@ export default function ReportsPage() {
         case 'supplierAccount':
           result = await ipc.reports.getSupplierAccountReport({
             search: customerSearch || undefined,
+          });
+          break;
+        case 'utsOperations':
+          result = await ipc.utsOperations.getReport({
+            date_from: dateFrom,
+            date_to: dateTo,
           });
           break;
         default:
@@ -1189,6 +1196,35 @@ export default function ReportsPage() {
                 <td>{String(r.medula_status)}</td>
                 <td>{String(r.sale_no || '-')}</td>
                 <td>{String(r.medula_note || '-')}</td>
+              </tr>
+            )}
+          />
+        </>
+      )}
+
+      {tab === 'utsOperations' && data && (
+        <>
+          <SummaryRow
+            items={[
+              { label: 'Toplam İşlem', value: String((data.summary as Record<string, number>)?.total ?? 0) },
+              { label: 'Bekleyen', value: String((data.summary as Record<string, number>)?.pending ?? 0) },
+              { label: 'Dışa Aktarılan', value: String((data.summary as Record<string, number>)?.exported ?? 0) },
+              { label: 'ÜTS\'de İşlenen', value: String((data.summary as Record<string, number>)?.processed ?? 0) },
+              { label: 'Hatalı', value: String((data.summary as Record<string, number>)?.error ?? 0), negative: true },
+              { label: 'İşlem Dışı', value: String((data.summary as Record<string, number>)?.ignored ?? 0) },
+            ]}
+          />
+          <ReportTable
+            headers={['İşlem No', 'Tarih', 'Tür', 'Durum', 'Belge', 'Kullanıcı']}
+            rows={(data.rows as Record<string, unknown>[]) || []}
+            renderRow={(r, i) => (
+              <tr key={i}>
+                <td>{String(r.operation_no)}</td>
+                <td>{formatDateTime(String(r.operation_date))}</td>
+                <td>{String(r.operation_type)}</td>
+                <td>{String(r.status)}</td>
+                <td>{String(r.document_no || '-')}</td>
+                <td>{String(r.created_by_name || '-')}</td>
               </tr>
             )}
           />

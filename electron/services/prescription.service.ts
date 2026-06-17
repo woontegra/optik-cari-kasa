@@ -150,8 +150,9 @@ export class PrescriptionService {
           lens_type, usage_type, notes, status, is_active,
           prescription_type, e_report_no, provision_no, sgk_tracking_no,
           institution_code, doctor_registration_no, patient_tc, beneficiary_note,
-          medula_status, medula_note
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          medula_status, medula_note, examination_date, rx_delivery_date,
+          patient_card_no, doctor_branch, medula_approval_status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
       .run(
         input.customer_id,
@@ -181,7 +182,12 @@ export class PrescriptionService {
         input.patient_tc?.trim() || null,
         input.beneficiary_note?.trim() || null,
         input.medula_status || 'Hazırlanmadı',
-        input.medula_note?.trim() || null
+        input.medula_note?.trim() || null,
+        input.examination_date || null,
+        input.rx_delivery_date || null,
+        input.patient_card_no?.trim() || null,
+        input.doctor_branch?.trim() || null,
+        input.medula_approval_status?.trim() || null
       );
 
     return { id: Number(result.lastInsertRowid), prescription_no: prescriptionNo };
@@ -202,6 +208,8 @@ export class PrescriptionService {
           prescription_type = ?, e_report_no = ?, provision_no = ?, sgk_tracking_no = ?,
           institution_code = ?, doctor_registration_no = ?, patient_tc = ?, beneficiary_note = ?,
           medula_status = ?, medula_note = ?,
+          examination_date = ?, rx_delivery_date = ?, patient_card_no = ?,
+          doctor_branch = ?, medula_approval_status = ?,
           updated_at = datetime('now', 'localtime')
          WHERE id = ?`
       )
@@ -233,6 +241,11 @@ export class PrescriptionService {
         input.beneficiary_note?.trim() || null,
         input.medula_status || 'Hazırlanmadı',
         input.medula_note?.trim() || null,
+        input.examination_date || null,
+        input.rx_delivery_date || null,
+        input.patient_card_no?.trim() || null,
+        input.doctor_branch?.trim() || null,
+        input.medula_approval_status?.trim() || null,
         id
       );
     return { id };

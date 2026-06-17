@@ -256,6 +256,10 @@ export interface DashboardStats {
   todayReturns: number;
   cancelledToday: number;
   medulaPending: number;
+  medulaMissingInfo?: number;
+  sgkInvoiceReady?: number;
+  institutionReceivableTotal?: number;
+  institutionReceivableCount?: number;
   utsIncomplete: number;
   titubbPending?: number;
   pendingPurchaseCount?: number;
@@ -272,6 +276,10 @@ export interface DashboardStats {
   upcomingControls?: number;
   debtorsCount?: number;
   lensRenewalSoon?: number;
+  utsPendingReceive?: number;
+  utsPendingGive?: number;
+  utsErrorCount?: number;
+  utsTitubbPending?: number;
   recentSales: unknown[];
   recentCashMovements: Array<{
     id: number;
@@ -293,6 +301,14 @@ export interface CompleteSaleOptions {
   posAccountId?: number | null;
   campaignCode?: string | null;
   manualDiscount?: import('@/types/campaign').ManualDiscountInput | null;
+  institutionPayment?: {
+    patient_amount: number;
+    institution_amount: number;
+    contribution_amount?: number;
+    difference_fee?: number;
+    collected_patient_amount?: number;
+    notes?: string;
+  } | null;
 }
 
 export const PAYMENT_TYPES = ['Nakit', 'Kredi Kartı', 'Havale/EFT', 'Açık Hesap', 'Parçalı Ödeme'] as const;

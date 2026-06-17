@@ -46,6 +46,11 @@ export default function SalePage() {
   const [customerPrescriptions, setCustomerPrescriptions] = useState<Prescription[]>([]);
   const [selectedPrescriptionId, setSelectedPrescriptionId] = useState<number | null>(null);
   const [showQuickCustomer, setShowQuickCustomer] = useState(false);
+  const [patientPayAmount, setPatientPayAmount] = useState('');
+  const [institutionPayAmount, setInstitutionPayAmount] = useState('');
+  const [contributionAmount, setContributionAmount] = useState('');
+  const [differenceFee, setDifferenceFee] = useState('');
+  const [institutionPayNote, setInstitutionPayNote] = useState('');
 
   const inputRef = useRef<HTMLInputElement>(null);
   const searchTimer = useRef<ReturnType<typeof setTimeout>>();
@@ -292,6 +297,16 @@ export default function SalePage() {
                 description: manualDiscountDesc || undefined,
               }
             : null,
+        institutionPayment: isInstitutionRx && institutionPayAmount
+          ? {
+              patient_amount: parseFloat(patientPayAmount) || parseFloat(paidAmountInput) || total,
+              institution_amount: parseFloat(institutionPayAmount) || 0,
+              contribution_amount: parseFloat(contributionAmount) || undefined,
+              difference_fee: parseFloat(differenceFee) || undefined,
+              collected_patient_amount: paymentMode === 'Parçalı Ödeme' ? parseFloat(paidAmountInput) || 0 : undefined,
+              notes: institutionPayNote || undefined,
+            }
+          : null,
       });
       const label = selectedCustomer ? selectedCustomer.full_name : 'Hızlı satış';
       setToast(`Satış tamamlandı (${label}): ${result.saleNo}`);
@@ -316,6 +331,7 @@ export default function SalePage() {
   const manualDiscount = calcResult?.manualDiscountAmount ?? 0;
   const totalAmount = calcResult?.netTotal ?? items.reduce((sum, i) => sum + i.total, 0);
   const selectedPrescription = customerPrescriptions.find((p) => p.id === selectedPrescriptionId);
+  const isInstitutionRx = selectedPrescription && ['SGK', 'Kurum', 'Tamamlayıcı'].includes(String(selectedPrescription.prescription_type || ''));
 
   return (
     <div className="page-content">
@@ -481,6 +497,22 @@ export default function SalePage() {
           </div>
         </div>
       </div>
+
+      {isInstitutionRx && (
+        <div className="panel" style={{ marginBottom: 8 }}>
+          <div className="panel-header">SGK / Kurum Ödeme Kırılımı</div>
+          <div className="panel-body">
+            <p style={{ fontSize: 11, color: '#666', margin: '0 0 8px' }}>Kurum karşılığı müşteri carisinden ayrı takip edilir.</p>
+            <div className="form-row">
+              <div className="form-group"><label>Hasta Ödeyecek (₺)</label><input type="number" className="form-input" value={patientPayAmount} onChange={(e) => setPatientPayAmount(e.target.value)} placeholder={String(totalAmount)} /></div>
+              <div className="form-group"><label>Kurum Karşılığı (₺)</label><input type="number" className="form-input" value={institutionPayAmount} onChange={(e) => setInstitutionPayAmount(e.target.value)} /></div>
+              <div className="form-group"><label>Katkı Payı (₺)</label><input type="number" className="form-input" value={contributionAmount} onChange={(e) => setContributionAmount(e.target.value)} /></div>
+              <div className="form-group"><label>Fark Ücreti (₺)</label><input type="number" className="form-input" value={differenceFee} onChange={(e) => setDifferenceFee(e.target.value)} /></div>
+              <div className="form-group"><label>Açıklama</label><input className="form-input" value={institutionPayNote} onChange={(e) => setInstitutionPayNote(e.target.value)} /></div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="sale-payment-bar">
         <label>Ödeme:</label>

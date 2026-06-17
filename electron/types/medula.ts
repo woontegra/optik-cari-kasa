@@ -1,12 +1,17 @@
-export const PRESCRIPTION_TYPES = ['Özel', 'SGK'] as const;
+export const PRESCRIPTION_TYPES = ['Özel', 'SGK', 'Kurum', 'Tamamlayıcı'] as const;
 export type PrescriptionType = (typeof PRESCRIPTION_TYPES)[number];
 
 export const MEDULA_STATUSES = [
   'Hazırlanmadı',
   'Hazır',
+  'Medula\'ya İşlendi',
+  'Eksik Bilgi',
+  'Hatalı',
+  'İptal',
+  'Faturaya Hazır',
+  'Faturalandı',
   'Dışa Aktarıldı',
   'Manuel Yüklendi',
-  'Hatalı',
 ] as const;
 export type MedulaStatus = (typeof MEDULA_STATUSES)[number];
 
@@ -21,6 +26,7 @@ export interface MedulaListFilters {
   medula_status?: string;
   has_missing_fields?: boolean;
   prescription_type?: string;
+  only_institution?: boolean;
 }
 
 export interface MedulaRecordListItem {

@@ -168,6 +168,23 @@ const PRESCRIPTION_COLUMNS: Array<{ name: string; ddl: string }> = [
   { name: 'medula_note', ddl: 'TEXT' },
 ];
 
+const MEDULA_V2_PRESCRIPTION_COLUMNS: Array<{ name: string; ddl: string }> = [
+  { name: 'examination_date', ddl: 'TEXT' },
+  { name: 'rx_delivery_date', ddl: 'TEXT' },
+  { name: 'patient_card_no', ddl: 'TEXT' },
+  { name: 'doctor_branch', ddl: 'TEXT' },
+  { name: 'medula_approval_status', ddl: 'TEXT' },
+];
+
+const MEDULA_V2_SALES_COLUMNS: Array<{ name: string; ddl: string }> = [
+  { name: 'patient_amount', ddl: 'REAL DEFAULT 0' },
+  { name: 'institution_amount', ddl: 'REAL DEFAULT 0' },
+  { name: 'contribution_amount', ddl: 'REAL DEFAULT 0' },
+  { name: 'difference_fee', ddl: 'REAL DEFAULT 0' },
+  { name: 'collected_patient_amount', ddl: 'REAL DEFAULT 0' },
+  { name: 'institution_payment_note', ddl: 'TEXT' },
+];
+
 const SALES_COLUMNS: Array<{ name: string; ddl: string }> = [
   { name: 'prescription_id', ddl: 'INTEGER REFERENCES prescriptions(id)' },
   { name: 'paid_amount', ddl: 'REAL DEFAULT 0' },
@@ -366,6 +383,12 @@ export function runColumnMigrations(db: Database.Database): void {
   }
   for (const col of PRESCRIPTION_COLUMNS) {
     addColumnIfMissing(db, 'prescriptions', col.name, col.ddl);
+  }
+  for (const col of MEDULA_V2_PRESCRIPTION_COLUMNS) {
+    addColumnIfMissing(db, 'prescriptions', col.name, col.ddl);
+  }
+  for (const col of MEDULA_V2_SALES_COLUMNS) {
+    addColumnIfMissing(db, 'sales', col.name, col.ddl);
   }
   for (const col of SALES_COLUMNS) {
     addColumnIfMissing(db, 'sales', col.name, col.ddl);
@@ -964,9 +987,6 @@ export function runColumnMigrations(db: Database.Database): void {
     addColumnIfMissing(db, 'customers', col.name, col.ddl);
   }
 
-  seedCustomerCategories(db);
-  seedCommunicationTemplates(db);
-
   db.exec(`
     CREATE TABLE IF NOT EXISTS customer_important_dates (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -1029,6 +1049,178 @@ export function runColumnMigrations(db: Database.Database): void {
     CREATE INDEX IF NOT EXISTS idx_customer_dates ON customer_important_dates(customer_id, date);
     CREATE INDEX IF NOT EXISTS idx_comm_logs_customer ON communication_logs(customer_id, created_at);
   `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS uts_operations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      operation_no TEXT NOT NULL,
+      operation_type TEXT NOT NULL,
+      source_type TEXT,
+      source_id INTEGER,
+      customer_id INTEGER,
+      supplier_id INTEGER,
+      sale_id INTEGER,
+      return_id INTEGER,
+      stock_entry_batch_id INTEGER,
+      document_no TEXT,
+      operation_date TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'Bekliyor',
+      exported_at TEXT,
+      processed_at TEXT,
+      notes TEXT,
+      created_by INTEGER,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      updated_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (customer_id) REFERENCES customers(id),
+      FOREIGN KEY (supplier_id) REFERENCES suppliers(id),
+      FOREIGN KEY (sale_id) REFERENCES sales(id),
+      FOREIGN KEY (return_id) REFERENCES returns(id),
+      FOREIGN KEY (stock_entry_batch_id) REFERENCES stock_entry_batches(id),
+      FOREIGN KEY (created_by) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS uts_operation_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      operation_id INTEGER NOT NULL,
+      product_id INTEGER NOT NULL,
+      barcode TEXT,
+      gtin TEXT,
+      ubb_code TEXT,
+      uts_product_no TEXT,
+      serial_no TEXT,
+      lot_no TEXT,
+      expiry_date TEXT,
+      quantity INTEGER NOT NULL DEFAULT 1,
+      customer_id INTEGER,
+      supplier_id INTEGER,
+      status TEXT NOT NULL DEFAULT 'Bekliyor',
+      error_message TEXT,
+      notes TEXT,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (operation_id) REFERENCES uts_operations(id) ON DELETE CASCADE,
+      FOREIGN KEY (product_id) REFERENCES products(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS uts_operation_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      operation_id INTEGER NOT NULL,
+      status TEXT NOT NULL,
+      description TEXT,
+      created_by INTEGER,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (operation_id) REFERENCES uts_operations(id) ON DELETE CASCADE,
+      FOREIGN KEY (created_by) REFERENCES users(id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_uts_ops_type_status ON uts_operations(operation_type, status, operation_date);
+    CREATE INDEX IF NOT EXISTS idx_uts_ops_source ON uts_operations(source_type, source_id);
+    CREATE INDEX IF NOT EXISTS idx_uts_op_items_serial ON uts_operation_items(product_id, serial_no);
+  `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS institution_receivables (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      prescription_id INTEGER,
+      sale_id INTEGER,
+      customer_id INTEGER,
+      institution_name TEXT,
+      institution_code TEXT,
+      total_amount REAL NOT NULL DEFAULT 0,
+      patient_amount REAL NOT NULL DEFAULT 0,
+      institution_amount REAL NOT NULL DEFAULT 0,
+      collected_patient_amount REAL NOT NULL DEFAULT 0,
+      remaining_institution_amount REAL NOT NULL DEFAULT 0,
+      status TEXT NOT NULL DEFAULT 'Bekliyor',
+      invoice_batch_id INTEGER,
+      notes TEXT,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      updated_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (prescription_id) REFERENCES prescriptions(id),
+      FOREIGN KEY (sale_id) REFERENCES sales(id),
+      FOREIGN KEY (customer_id) REFERENCES customers(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS medula_operations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      operation_no TEXT NOT NULL,
+      operation_type TEXT NOT NULL,
+      prescription_id INTEGER,
+      sale_id INTEGER,
+      customer_id INTEGER,
+      institution_receivable_id INTEGER,
+      operation_date TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'Tamamlandı',
+      exported_at TEXT,
+      processed_at TEXT,
+      notes TEXT,
+      created_by INTEGER,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      updated_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (prescription_id) REFERENCES prescriptions(id),
+      FOREIGN KEY (sale_id) REFERENCES sales(id),
+      FOREIGN KEY (customer_id) REFERENCES customers(id),
+      FOREIGN KEY (institution_receivable_id) REFERENCES institution_receivables(id),
+      FOREIGN KEY (created_by) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS medula_operation_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      operation_id INTEGER NOT NULL,
+      status TEXT NOT NULL,
+      description TEXT,
+      created_by INTEGER,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (operation_id) REFERENCES medula_operations(id) ON DELETE CASCADE,
+      FOREIGN KEY (created_by) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS sgk_invoice_batches (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      batch_no TEXT NOT NULL,
+      institution_name TEXT,
+      date_from TEXT,
+      date_to TEXT,
+      total_prescriptions INTEGER DEFAULT 0,
+      total_amount REAL DEFAULT 0,
+      total_patient_amount REAL DEFAULT 0,
+      total_institution_amount REAL DEFAULT 0,
+      status TEXT NOT NULL DEFAULT 'Taslak',
+      notes TEXT,
+      created_by INTEGER,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      updated_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (created_by) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS sgk_invoice_batch_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      batch_id INTEGER NOT NULL,
+      prescription_id INTEGER,
+      sale_id INTEGER,
+      customer_id INTEGER,
+      institution_receivable_id INTEGER,
+      amount REAL DEFAULT 0,
+      patient_amount REAL DEFAULT 0,
+      institution_amount REAL DEFAULT 0,
+      status TEXT NOT NULL DEFAULT 'Taslak',
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (batch_id) REFERENCES sgk_invoice_batches(id) ON DELETE CASCADE,
+      FOREIGN KEY (prescription_id) REFERENCES prescriptions(id),
+      FOREIGN KEY (sale_id) REFERENCES sales(id),
+      FOREIGN KEY (customer_id) REFERENCES customers(id),
+      FOREIGN KEY (institution_receivable_id) REFERENCES institution_receivables(id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_inst_recv_status ON institution_receivables(status, institution_name);
+    CREATE INDEX IF NOT EXISTS idx_inst_recv_sale ON institution_receivables(sale_id);
+    CREATE INDEX IF NOT EXISTS idx_medula_ops_date ON medula_operations(operation_date, operation_type);
+    CREATE INDEX IF NOT EXISTS idx_sgk_batch_status ON sgk_invoice_batches(status, date_from);
+  `);
+
+  db.prepare(`UPDATE prescriptions SET medula_status = 'Medula''ya İşlendi' WHERE medula_status = 'Manuel Yüklendi'`).run();
+
+  seedCustomerCategories(db);
+  seedCommunicationTemplates(db);
 }
 
 function seedCustomerCategories(db: Database.Database): void {

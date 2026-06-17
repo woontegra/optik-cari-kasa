@@ -24,6 +24,10 @@ export const PERMISSIONS = {
   PRESCRIPTIONS_EDIT: 'prescriptions.edit',
   MEDULA_VIEW: 'medula.view',
   MEDULA_EXPORT: 'medula.export',
+  MEDULA_EDIT: 'medula.edit',
+  MEDULA_MARK_PROCESSED: 'medula.markProcessed',
+  SGK_VIEW: 'sgk.view',
+  SGK_EDIT: 'sgk.edit',
   REPORTS_VIEW: 'reports.view',
   EXCEL_EXPORT: 'excel.export',
   SETTINGS_EDIT: 'settings.edit',
@@ -41,6 +45,10 @@ export const PERMISSIONS = {
   APPOINTMENTS_EDIT: 'appointments.edit',
   COMMUNICATIONS_VIEW: 'communications.view',
   COMMUNICATIONS_EDIT: 'communications.edit',
+  UTS_VIEW: 'uts.view',
+  UTS_EDIT: 'uts.edit',
+  UTS_EXPORT: 'uts.export',
+  UTS_MARK_PROCESSED: 'uts.markProcessed',
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -61,6 +69,10 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
   'prescriptions.edit': 'Reçete ekleme/düzenleme',
   'medula.view': 'Medula/ÜTS görüntüleme',
   'medula.export': 'Medula dışa aktarım',
+  'medula.edit': 'Medula bilgi düzenleme',
+  'medula.markProcessed': 'Medula işlendi / fatura işaretleme',
+  'sgk.view': 'SGK/Kurum reçete görüntüleme',
+  'sgk.edit': 'SGK fatura ve kurum alacağı düzenleme',
   'reports.view': 'Raporları görüntüleme',
   'excel.export': 'Excel dışa aktarım',
   'settings.edit': 'Ayarları değiştirme',
@@ -78,6 +90,10 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
   'appointments.edit': 'Randevu oluşturma/düzenleme',
   'communications.view': 'İletişim geçmişi görüntüleme',
   'communications.edit': 'Mesaj hazırlama',
+  'uts.view': 'ÜTS operasyonları görüntüleme',
+  'uts.edit': 'ÜTS operasyonu hazırlama',
+  'uts.export': 'ÜTS Excel dışa aktarım',
+  'uts.markProcessed': 'ÜTS\'de işlendi işaretleme',
 };
 
 export const ALL_PERMISSIONS: Permission[] = Object.values(PERMISSIONS);
@@ -93,11 +109,14 @@ const SALES_STAFF: Permission[] = [
   PERMISSIONS.PRESCRIPTIONS_VIEW,
   PERMISSIONS.PRESCRIPTIONS_EDIT,
   PERMISSIONS.MEDULA_VIEW,
+  PERMISSIONS.MEDULA_EDIT,
+  PERMISSIONS.SGK_VIEW,
   PERMISSIONS.CAMPAIGN_VIEW,
   PERMISSIONS.APPOINTMENTS_VIEW,
   PERMISSIONS.APPOINTMENTS_EDIT,
   PERMISSIONS.COMMUNICATIONS_VIEW,
   PERMISSIONS.COMMUNICATIONS_EDIT,
+  PERMISSIONS.UTS_VIEW,
 ];
 
 const CASH_STAFF: Permission[] = [
@@ -106,6 +125,8 @@ const CASH_STAFF: Permission[] = [
   PERMISSIONS.CASH_EDIT,
   PERMISSIONS.FINANCE_VIEW,
   PERMISSIONS.FINANCE_EDIT,
+  PERMISSIONS.SGK_VIEW,
+  PERMISSIONS.SGK_EDIT,
   PERMISSIONS.CUSTOMERS_VIEW,
   PERMISSIONS.SUPPLIERS_VIEW,
   PERMISSIONS.SUPPLIER_PAYMENTS,
@@ -120,6 +141,9 @@ const STOCK_STAFF: Permission[] = [
   PERMISSIONS.EXCEL_EXPORT,
   PERMISSIONS.SUPPLIERS_VIEW,
   PERMISSIONS.SUPPLIERS_EDIT,
+  PERMISSIONS.UTS_VIEW,
+  PERMISSIONS.UTS_EDIT,
+  PERMISSIONS.UTS_EXPORT,
 ];
 
 const REPORT_USER: Permission[] = [
@@ -132,6 +156,8 @@ const REPORT_USER: Permission[] = [
   PERMISSIONS.CUSTOMERS_VIEW,
   PERMISSIONS.APPOINTMENTS_VIEW,
   PERMISSIONS.MEDULA_VIEW,
+  PERMISSIONS.SGK_VIEW,
+  PERMISSIONS.UTS_VIEW,
 ];
 
 export const ROLE_DEFAULT_PERMISSIONS: Record<UserRole, Permission[]> = {

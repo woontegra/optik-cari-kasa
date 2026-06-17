@@ -6,8 +6,10 @@ import { PosService } from '../services/pos.service';
 import { ProfitLossService } from '../services/profitLoss.service';
 import { AppointmentService } from '../services/appointment.service';
 import { CustomerService } from '../services/customer.service';
-import { UtsTrackingService } from '../services/utsTracking.service';
+import { UtsOperationService } from '../services/utsOperation.service';
+import { MedulaOperationService } from '../services/medulaOperation.service';
 import { TitubbExportService } from '../services/titubbExport.service';
+import { UtsTrackingService } from '../services/utsTracking.service';
 import { requirePermission } from './authGuard';
 import { PERMISSIONS } from '../types/permission';
 import { handleIpcError } from './ipcHelpers';
@@ -95,15 +97,9 @@ export function registerDashboardHandlers(ipcMain: IpcMain): void {
         )
         .get() as { total: number };
 
-      const medulaPending = db()
-        .prepare(
-          `SELECT COUNT(DISTINCT s.id) as count FROM sales s
-           INNER JOIN prescriptions pr ON pr.id = s.prescription_id
-           WHERE s.status != 'İptal edildi'
-           AND pr.medula_status IN ('Hazırlanmadı', 'Hazır')`
-        )
-        .get() as { count: number };
-
+      const utsOpService = new UtsOperationService(db());
+      const medulaOpService = new MedulaOperationService(db());
+      const medulaV2Stats = medulaOpService.getDashboardStats();
       const utsIncomplete = new UtsTrackingService(db()).countIncompleteProducts();
       const titubbPending = new TitubbExportService(db()).countPending();
 
@@ -161,6 +157,11 @@ export function registerDashboardHandlers(ipcMain: IpcMain): void {
       const debtorsCount = customerService.countDebtors();
       const lensRenewalSoon = appointmentService.countLensRenewalSoon();
 
+      const utsPendingReceive = utsOpService.countPendingReceive();
+      const utsPendingGive = utsOpService.countPendingGive();
+      const utsErrorCount = utsOpService.countErrorRecords();
+      const utsTitubbPending = new TitubbExportService(db()).countPending();
+
       return success({
         todaySales: todaySales.total,
         todayCollection: todayCollection.total,
@@ -177,11 +178,19 @@ export function registerDashboardHandlers(ipcMain: IpcMain): void {
         upcomingControls,
         debtorsCount,
         lensRenewalSoon,
+        utsPendingReceive,
+        utsPendingGive,
+        utsErrorCount,
+        utsTitubbPending,
         criticalStock: criticalStock.count,
         activePrescriptions: activePrescriptions.count,
         todayReturns: todayReturns.total,
         cancelledToday: cancelledToday.count,
-        medulaPending: medulaPending.count,
+        medulaPending: medulaV2Stats.medulaPending,
+        medulaMissingInfo: medulaV2Stats.medulaMissingInfo,
+        sgkInvoiceReady: medulaV2Stats.sgkInvoiceReady,
+        institutionReceivableTotal: medulaV2Stats.institutionReceivableTotal,
+        institutionReceivableCount: medulaV2Stats.institutionReceivableCount,
         utsIncomplete,
         titubbPending,
         pendingPurchaseCount: pendingPurchasePayments.count,

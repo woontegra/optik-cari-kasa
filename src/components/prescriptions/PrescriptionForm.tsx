@@ -33,6 +33,11 @@ const emptyForm = (customerId = 0): PrescriptionInput => ({
   beneficiary_note: '',
   medula_status: 'Hazırlanmadı',
   medula_note: '',
+  examination_date: '',
+  rx_delivery_date: '',
+  patient_card_no: '',
+  doctor_branch: '',
+  medula_approval_status: '',
 });
 
 interface PrescriptionFormProps {
@@ -94,6 +99,11 @@ export default function PrescriptionForm({
         beneficiary_note: prescription.beneficiary_note || '',
         medula_status: prescription.medula_status || 'Hazırlanmadı',
         medula_note: prescription.medula_note || '',
+        examination_date: prescription.examination_date || '',
+        rx_delivery_date: prescription.rx_delivery_date || '',
+        patient_card_no: prescription.patient_card_no || '',
+        doctor_branch: prescription.doctor_branch || '',
+        medula_approval_status: prescription.medula_approval_status || '',
       });
     } else {
       setForm(emptyForm(defaultCustomerId));
@@ -240,31 +250,44 @@ export default function PrescriptionForm({
           )}
 
           {tab === 'medula' && (
+            <>
+            <p style={{ fontSize: 11, color: '#666', margin: '0 0 8px' }}>
+              Bu alanlar Medula hazırlık ve takip içindir. Resmi işlemler ilgili sistemde yapılır.
+            </p>
             <div className="form-row">
               <div className="form-group">
-                <label>Reçete Tipi</label>
+                <label>Reçete Türü</label>
                 <select className="form-select" value={form.prescription_type || 'Özel'} onChange={(e) => setField('prescription_type', e.target.value as PrescriptionInput['prescription_type'])} disabled={readOnly}>
                   {PRESCRIPTION_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
+              <div className="form-group"><label>E-reçete No</label><input className="form-input" value={form.e_prescription_no || ''} onChange={(e) => setField('e_prescription_no', e.target.value)} readOnly={readOnly} /></div>
               <div className="form-group"><label>E-rapor No</label><input className="form-input" value={form.e_report_no || ''} onChange={(e) => setField('e_report_no', e.target.value)} readOnly={readOnly} /></div>
               <div className="form-group"><label>Provizyon No</label><input className="form-input" value={form.provision_no || ''} onChange={(e) => setField('provision_no', e.target.value)} readOnly={readOnly} /></div>
-              <div className="form-group"><label>SGK Takip No</label><input className="form-input" value={form.sgk_tracking_no || ''} onChange={(e) => setField('sgk_tracking_no', e.target.value)} readOnly={readOnly} /></div>
+              <div className="form-group"><label>Medula Takip No</label><input className="form-input" value={form.sgk_tracking_no || ''} onChange={(e) => setField('sgk_tracking_no', e.target.value)} readOnly={readOnly} /></div>
               <div className="form-group"><label>Kurum Kodu</label><input className="form-input" value={form.institution_code || ''} onChange={(e) => setField('institution_code', e.target.value)} readOnly={readOnly} /></div>
+              <div className="form-group"><label>Kurum Adı</label><input className="form-input" value={form.institution || ''} onChange={(e) => setField('institution', e.target.value)} readOnly={readOnly} /></div>
+              <div className="form-group"><label>Doktor Adı</label><input className="form-input" value={form.doctor || ''} onChange={(e) => setField('doctor', e.target.value)} readOnly={readOnly} /></div>
               <div className="form-group"><label>Doktor Diploma / Tescil No</label><input className="form-input" value={form.doctor_registration_no || ''} onChange={(e) => setField('doctor_registration_no', e.target.value)} readOnly={readOnly} /></div>
-              <div className="form-group"><label>Hasta T.C. Kimlik No</label><input className="form-input" value={form.patient_tc || ''} onChange={(e) => setField('patient_tc', e.target.value)} readOnly={readOnly} /></div>
-              <div className="form-group"><label>Yakınlık / Hak Sahibi Notu</label><input className="form-input" value={form.beneficiary_note || ''} onChange={(e) => setField('beneficiary_note', e.target.value)} readOnly={readOnly} /></div>
+              <div className="form-group"><label>Branş</label><input className="form-input" value={form.doctor_branch || ''} onChange={(e) => setField('doctor_branch', e.target.value)} readOnly={readOnly} /></div>
+              <div className="form-group"><label>Hasta T.C.</label><input className="form-input" value={form.patient_tc || ''} onChange={(e) => setField('patient_tc', e.target.value)} readOnly={readOnly} /></div>
+              <div className="form-group"><label>Hasta Karne / Sicil No</label><input className="form-input" value={form.patient_card_no || ''} onChange={(e) => setField('patient_card_no', e.target.value)} readOnly={readOnly} /></div>
+              <div className="form-group"><label>Hak Sahibi Bilgisi</label><input className="form-input" value={form.beneficiary_note || ''} onChange={(e) => setField('beneficiary_note', e.target.value)} readOnly={readOnly} /></div>
+              <div className="form-group"><label>Muayene Tarihi</label><input type="date" className="form-input" value={form.examination_date || ''} onChange={(e) => setField('examination_date', e.target.value)} readOnly={readOnly} /></div>
+              <div className="form-group"><label>Teslim Tarihi</label><input type="date" className="form-input" value={form.rx_delivery_date || ''} onChange={(e) => setField('rx_delivery_date', e.target.value)} readOnly={readOnly} /></div>
               <div className="form-group">
-                <label>Medula İşlem Durumu</label>
+                <label>Medula Durumu</label>
                 <select className="form-select" value={form.medula_status || 'Hazırlanmadı'} onChange={(e) => setField('medula_status', e.target.value)} disabled={readOnly}>
                   {MEDULA_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
+              <div className="form-group"><label>Onay Durumu</label><input className="form-input" value={form.medula_approval_status || ''} onChange={(e) => setField('medula_approval_status', e.target.value)} readOnly={readOnly} /></div>
               <div className="form-group" style={{ gridColumn: 'span 2' }}>
                 <label>Medula Notu</label>
                 <input className="form-input" value={form.medula_note || ''} onChange={(e) => setField('medula_note', e.target.value)} readOnly={readOnly} />
               </div>
             </div>
+            </>
           )}
         </div>
         <div className="product-form-footer">

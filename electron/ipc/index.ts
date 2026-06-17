@@ -31,6 +31,9 @@ import { registerInventoryCountHandlers } from './inventoryCount.handler';
 import { registerSupplierHandlers } from './suppliers.handler';
 import { registerTitubbHandlers } from './titubb.handler';
 import { registerOpticalLookupHandlers } from './opticalLookup.handler';
+import { registerFinanceHandlers } from './finance.handler';
+import { registerCampaignHandlers } from './campaign.handler';
+import { registerCustomerTrackingHandlers } from './customerTracking.handler';
 
 export function registerIpcHandlers(ipcMain: IpcMain): void {
   registerLicenseHandlers(ipcMain);
@@ -63,4 +66,7 @@ export function registerIpcHandlers(ipcMain: IpcMain): void {
   registerSupplierHandlers(ipcMain, dialog);
   registerTitubbHandlers(ipcMain, dialog);
   registerOpticalLookupHandlers(ipcMain);
+  registerFinanceHandlers(ipcMain, dialog);
+  registerCampaignHandlers(ipcMain);
+  registerCustomerTrackingHandlers(ipcMain, dialog);
 }

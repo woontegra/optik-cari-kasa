@@ -84,6 +84,8 @@ export default function SuppliersPage() {
   const [paymentDate, setPaymentDate] = useState(new Date().toISOString().slice(0, 10));
   const [paymentDesc, setPaymentDesc] = useState('');
   const [paymentDocId, setPaymentDocId] = useState<number | ''>('');
+  const [paymentBankId, setPaymentBankId] = useState<number | ''>('');
+  const [bankAccounts, setBankAccounts] = useState<Record<string, unknown>[]>([]);
   const [allMovements, setAllMovements] = useState<Record<string, unknown>[]>([]);
 
   const barcodeRef = useRef<HTMLInputElement>(null);
@@ -114,6 +116,10 @@ export default function SuppliersPage() {
   useEffect(() => {
     loadSuppliers();
   }, [loadSuppliers]);
+
+  useEffect(() => {
+    if (canPay) ipc.banks.listAccounts().then(setBankAccounts).catch(console.error);
+  }, [canPay]);
 
   useEffect(() => {
     if (tab === 'purchases' || tab === 'payments') loadPurchases();
@@ -278,6 +284,10 @@ export default function SuppliersPage() {
       setError('Tedarikçi ve geçerli tutar girin.');
       return;
     }
+    if (paymentType === 'Havale/EFT' && !paymentBankId) {
+      setError('Banka ödemesi için banka hesabı seçin.');
+      return;
+    }
     try {
       await ipc.suppliers.addPayment({
         supplier_id: paymentSupplierId,
@@ -286,6 +296,7 @@ export default function SuppliersPage() {
         payment_date: paymentDate,
         description: paymentDesc || undefined,
         purchase_document_id: paymentDocId === '' ? null : paymentDocId,
+        bank_account_id: paymentType === 'Havale/EFT' ? paymentBankId : null,
       });
       showToast('Ödeme kaydedildi.');
       setPaymentAmount('');
@@ -573,6 +584,17 @@ export default function SuppliersPage() {
                   {SUPPLIER_PAYMENT_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
+              {paymentType === 'Havale/EFT' && (
+                <div className="form-group">
+                  <label>Banka hesabı</label>
+                  <select className="form-select" value={paymentBankId} onChange={(e) => setPaymentBankId(e.target.value ? Number(e.target.value) : '')}>
+                    <option value="">Seçin</option>
+                    {bankAccounts.filter((b) => Number(b.is_active)).map((b) => (
+                      <option key={String(b.id)} value={String(b.id)}>{String(b.account_name)}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div className="form-group"><label>Tarih</label><input type="date" className="form-input" value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} /></div>
               <div className="form-group">
                 <label>Alış belgesi</label>

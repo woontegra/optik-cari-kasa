@@ -8,6 +8,7 @@ import type {
   SupplierPaymentInput,
 } from '../types/purchase';
 import { SupplierAccountService } from './supplierAccount.service';
+import { BankService } from './bank.service';
 
 export class PurchaseValidationError extends Error {
   constructor(message: string) {
@@ -47,9 +48,11 @@ function resolvePaymentStatus(total: number, paid: number, cancelled: boolean): 
 
 export class PurchaseService {
   private accountService: SupplierAccountService;
+  private bankService: BankService;
 
   constructor(private db: Database.Database) {
     this.accountService = new SupplierAccountService(db);
+    this.bankService = new BankService(db);
   }
 
   private generateDocumentNo(): string {
@@ -392,12 +395,12 @@ export class PurchaseService {
     userId: number,
     docId?: number,
     updateDoc = true
-  ): { paymentId: number; cashMovementId: number | null } {
+  ): { paymentId: number; cashMovementId: number | null; bankMovementId: number | null } {
     const payResult = this.db
       .prepare(
         `INSERT INTO supplier_payments (
-          supplier_id, purchase_document_id, amount, payment_type, payment_date, description, created_by
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)`
+          supplier_id, purchase_document_id, amount, payment_type, payment_date, description, created_by, bank_account_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
       )
       .run(
         input.supplier_id,
@@ -406,13 +409,30 @@ export class PurchaseService {
         input.payment_type,
         input.payment_date,
         input.description?.trim() || null,
-        userId
+        userId,
+        input.bank_account_id ?? null
       );
     const paymentId = Number(payResult.lastInsertRowid);
 
-    const cashTypes = ['Nakit', 'Kredi Kartı', 'Havale/EFT'];
     let cashMovementId: number | null = null;
-    if (cashTypes.includes(input.payment_type)) {
+    let bankMovementId: number | null = null;
+
+    const isBankPayment =
+      input.payment_type === 'Havale/EFT' && input.bank_account_id;
+
+    if (isBankPayment) {
+      const bankMove = this.bankService.recordSupplierPayment(
+        input.bank_account_id!,
+        input.supplier_id,
+        input.amount,
+        input.description || 'Tedarikçi ödemesi',
+        userId
+      );
+      bankMovementId = bankMove.bankMovementId;
+      this.db
+        .prepare(`UPDATE supplier_payments SET bank_movement_id = ? WHERE id = ?`)
+        .run(bankMovementId, paymentId);
+    } else if (input.payment_type === 'Nakit' || input.payment_type === 'Kredi Kartı') {
       const cashResult = this.db
         .prepare(
           `INSERT INTO cash_movements (movement_type, description, payment_type, amount, category, reference_type, reference_id, movement_date)
@@ -452,7 +472,7 @@ export class PurchaseService {
         .run(newPaid, remaining, paymentStatus, targetDocId);
     }
 
-    return { paymentId, cashMovementId };
+    return { paymentId, cashMovementId, bankMovementId };
   }
 
   addPayment(input: SupplierPaymentInput, userId: number): { paymentId: number } {

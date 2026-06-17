@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -9,6 +9,25 @@ import {
   menuItemKey,
   type MenuItemDef,
 } from '@/types/navigation';
+
+const STORAGE_KEY = 'woontegra_sidebar_collapsed';
+
+function loadCollapsedGroups(allGroupIds: string[]): Set<string> {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as string[];
+      if (Array.isArray(parsed)) return new Set(parsed);
+    }
+  } catch {
+    /* ignore */
+  }
+  return new Set(allGroupIds.filter((id) => id !== 'home'));
+}
+
+function saveCollapsedGroups(collapsed: Set<string>): void {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify([...collapsed]));
+}
 
 function itemTo(item: MenuItemDef) {
   if (item.search) {
@@ -30,27 +49,23 @@ export default function SidebarNav() {
     [location.pathname, location.search, visibleGroups]
   );
 
-  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+  const groupIds = useMemo(() => visibleGroups.map((g) => g.id), [visibleGroups]);
 
-  useEffect(() => {
-    if (!activeGroupId) return;
-    setCollapsedGroups((prev) => {
-      if (!prev.has(activeGroupId)) return prev;
-      const next = new Set(prev);
-      next.delete(activeGroupId);
-      return next;
-    });
-  }, [activeGroupId]);
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(() =>
+    loadCollapsedGroups(groupIds)
+  );
 
-  const isExpanded = (groupId: string) =>
-    activeGroupId === groupId || !collapsedGroups.has(groupId);
+  const isExpanded = useCallback(
+    (groupId: string) => !collapsedGroups.has(groupId),
+    [collapsedGroups]
+  );
 
   const toggleGroup = (groupId: string) => {
-    if (activeGroupId === groupId) return;
     setCollapsedGroups((prev) => {
       const next = new Set(prev);
       if (next.has(groupId)) next.delete(groupId);
       else next.add(groupId);
+      saveCollapsedGroups(next);
       return next;
     });
   };

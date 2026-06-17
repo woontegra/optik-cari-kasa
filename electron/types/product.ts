@@ -149,6 +149,8 @@ export interface SaleItemInput {
   barcode?: string;
   quantity: number;
   unitPrice: number;
+  originalUnitPrice?: number;
+  campaignId?: number | null;
   lineNote?: string;
 }
 

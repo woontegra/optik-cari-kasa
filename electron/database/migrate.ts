@@ -133,6 +133,25 @@ const CUSTOMER_COLUMNS: Array<{ name: string; ddl: string }> = [
   { name: 'is_active', ddl: 'INTEGER DEFAULT 1' },
 ];
 
+const CUSTOMER_V2_COLUMNS: Array<{ name: string; ddl: string }> = [
+  { name: 'customer_category', ddl: 'TEXT' },
+  { name: 'photo_path', ddl: 'TEXT' },
+  { name: 'second_phone', ddl: 'TEXT' },
+  { name: 'whatsapp_phone', ddl: 'TEXT' },
+  { name: 'institution_name', ddl: 'TEXT' },
+  { name: 'institution_no', ddl: 'TEXT' },
+  { name: 'occupation', ddl: 'TEXT' },
+  { name: 'reference_source', ddl: 'TEXT' },
+  { name: 'referred_by_customer_id', ddl: 'INTEGER REFERENCES customers(id)' },
+  { name: 'last_visit_date', ddl: 'TEXT' },
+  { name: 'next_control_date', ddl: 'TEXT' },
+  { name: 'whatsapp_permission', ddl: 'INTEGER DEFAULT 0' },
+  { name: 'marketing_permission', ddl: 'INTEGER DEFAULT 0' },
+  { name: 'important_note', ddl: 'TEXT' },
+  { name: 'risk_note', ddl: 'TEXT' },
+  { name: 'is_vip', ddl: 'INTEGER DEFAULT 0' },
+];
+
 const PRESCRIPTION_COLUMNS: Array<{ name: string; ddl: string }> = [
   { name: 'lens_type', ddl: 'TEXT' },
   { name: 'usage_type', ddl: 'TEXT' },
@@ -164,6 +183,17 @@ const SALES_COLUMNS: Array<{ name: string; ddl: string }> = [
 const SALE_ITEM_COLUMNS: Array<{ name: string; ddl: string }> = [
   { name: 'returned_quantity', ddl: 'INTEGER DEFAULT 0' },
   { name: 'line_note', ddl: 'TEXT' },
+  { name: 'discount_amount', ddl: 'REAL DEFAULT 0' },
+  { name: 'campaign_id', ddl: 'INTEGER REFERENCES campaigns(id)' },
+  { name: 'original_unit_price', ddl: 'REAL' },
+  { name: 'final_unit_price', ddl: 'REAL' },
+];
+
+const SALES_DISCOUNT_COLUMNS: Array<{ name: string; ddl: string }> = [
+  { name: 'total_discount_amount', ddl: 'REAL DEFAULT 0' },
+  { name: 'manual_discount_amount', ddl: 'REAL DEFAULT 0' },
+  { name: 'campaign_discount_amount', ddl: 'REAL DEFAULT 0' },
+  { name: 'manual_discount_note', ddl: 'TEXT' },
 ];
 
 const PAYMENT_COLUMNS: Array<{ name: string; ddl: string }> = [
@@ -743,4 +773,292 @@ export function runColumnMigrations(db: Database.Database): void {
   }
 
   seedOpticalLookups(db);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS bank_accounts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      account_name TEXT NOT NULL,
+      bank_name TEXT NOT NULL,
+      iban TEXT,
+      branch_name TEXT,
+      account_no TEXT,
+      currency TEXT DEFAULT '₺',
+      opening_balance REAL DEFAULT 0,
+      current_balance REAL DEFAULT 0,
+      is_active INTEGER DEFAULT 1,
+      notes TEXT,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      updated_at TEXT DEFAULT (datetime('now', 'localtime'))
+    );
+
+    CREATE TABLE IF NOT EXISTS pos_accounts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      bank_account_id INTEGER,
+      commission_rate REAL DEFAULT 0,
+      block_days INTEGER DEFAULT 0,
+      is_active INTEGER DEFAULT 1,
+      notes TEXT,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      updated_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (bank_account_id) REFERENCES bank_accounts(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS bank_movements (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      bank_account_id INTEGER NOT NULL,
+      movement_type TEXT NOT NULL,
+      amount REAL NOT NULL,
+      direction TEXT NOT NULL,
+      related_cash_movement_id INTEGER,
+      related_sale_id INTEGER,
+      related_supplier_id INTEGER,
+      related_customer_id INTEGER,
+      related_expense_id INTEGER,
+      description TEXT,
+      movement_date TEXT DEFAULT (datetime('now', 'localtime')),
+      created_by INTEGER,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (bank_account_id) REFERENCES bank_accounts(id),
+      FOREIGN KEY (related_cash_movement_id) REFERENCES cash_movements(id),
+      FOREIGN KEY (created_by) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS pos_movements (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      pos_account_id INTEGER NOT NULL,
+      sale_id INTEGER,
+      gross_amount REAL NOT NULL,
+      commission_amount REAL DEFAULT 0,
+      net_amount REAL NOT NULL,
+      expected_transfer_date TEXT,
+      transferred_at TEXT,
+      status TEXT DEFAULT 'Bekliyor',
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (pos_account_id) REFERENCES pos_accounts(id),
+      FOREIGN KEY (sale_id) REFERENCES sales(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS expenses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      expense_date TEXT NOT NULL,
+      category TEXT NOT NULL,
+      description TEXT NOT NULL,
+      amount REAL NOT NULL,
+      vat_rate REAL DEFAULT 0,
+      vat_amount REAL DEFAULT 0,
+      payment_method TEXT NOT NULL,
+      bank_account_id INTEGER,
+      status TEXT DEFAULT 'Aktif',
+      document_no TEXT,
+      notes TEXT,
+      cash_movement_id INTEGER,
+      bank_movement_id INTEGER,
+      created_by INTEGER,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      updated_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (bank_account_id) REFERENCES bank_accounts(id),
+      FOREIGN KEY (created_by) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS personnel_expenses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      personnel_name TEXT NOT NULL,
+      expense_type TEXT NOT NULL,
+      expense_date TEXT NOT NULL,
+      amount REAL NOT NULL,
+      payment_method TEXT NOT NULL,
+      bank_account_id INTEGER,
+      description TEXT,
+      expense_id INTEGER,
+      created_by INTEGER,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (expense_id) REFERENCES expenses(id),
+      FOREIGN KEY (bank_account_id) REFERENCES bank_accounts(id),
+      FOREIGN KEY (created_by) REFERENCES users(id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_bank_movements_account ON bank_movements(bank_account_id, movement_date);
+    CREATE INDEX IF NOT EXISTS idx_pos_movements_account ON pos_movements(pos_account_id, status);
+    CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(expense_date, status);
+  `);
+
+  addColumnIfMissing(db, 'supplier_payments', 'bank_account_id', 'INTEGER');
+  addColumnIfMissing(db, 'supplier_payments', 'bank_movement_id', 'INTEGER');
+  addColumnIfMissing(db, 'payments', 'pos_account_id', 'INTEGER');
+  addColumnIfMissing(db, 'payments', 'pos_movement_id', 'INTEGER');
+
+  for (const col of SALES_DISCOUNT_COLUMNS) {
+    addColumnIfMissing(db, 'sales', col.name, col.ddl);
+  }
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS campaigns (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      code TEXT,
+      description TEXT,
+      campaign_type TEXT NOT NULL,
+      discount_type TEXT NOT NULL,
+      discount_value REAL NOT NULL DEFAULT 0,
+      max_discount_amount REAL,
+      min_sale_amount REAL,
+      min_quantity INTEGER,
+      start_date TEXT NOT NULL,
+      end_date TEXT NOT NULL,
+      priority INTEGER DEFAULT 100,
+      usage_limit INTEGER,
+      per_customer_limit INTEGER,
+      status TEXT NOT NULL DEFAULT 'Taslak',
+      created_by INTEGER,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      updated_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (created_by) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS campaign_targets (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      campaign_id INTEGER NOT NULL,
+      target_type TEXT NOT NULL,
+      target_id INTEGER,
+      target_value TEXT,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS sale_discounts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      sale_id INTEGER NOT NULL,
+      sale_item_id INTEGER,
+      campaign_id INTEGER,
+      discount_type TEXT NOT NULL,
+      discount_value REAL,
+      discount_amount REAL NOT NULL,
+      description TEXT,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (sale_id) REFERENCES sales(id),
+      FOREIGN KEY (sale_item_id) REFERENCES sale_items(id),
+      FOREIGN KEY (campaign_id) REFERENCES campaigns(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS campaign_usages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      campaign_id INTEGER NOT NULL,
+      sale_id INTEGER NOT NULL,
+      customer_id INTEGER,
+      discount_amount REAL NOT NULL DEFAULT 0,
+      status TEXT NOT NULL DEFAULT 'Aktif',
+      used_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (campaign_id) REFERENCES campaigns(id),
+      FOREIGN KEY (sale_id) REFERENCES sales(id),
+      FOREIGN KEY (customer_id) REFERENCES customers(id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_campaigns_status ON campaigns(status, start_date, end_date);
+    CREATE INDEX IF NOT EXISTS idx_campaign_targets_campaign ON campaign_targets(campaign_id);
+    CREATE INDEX IF NOT EXISTS idx_campaign_usages_campaign ON campaign_usages(campaign_id, used_at);
+    CREATE INDEX IF NOT EXISTS idx_sale_discounts_sale ON sale_discounts(sale_id);
+  `);
+
+  for (const col of CUSTOMER_V2_COLUMNS) {
+    addColumnIfMissing(db, 'customers', col.name, col.ddl);
+  }
+
+  seedCustomerCategories(db);
+  seedCommunicationTemplates(db);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS customer_important_dates (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      customer_id INTEGER NOT NULL,
+      title TEXT NOT NULL,
+      date TEXT NOT NULL,
+      repeat_type TEXT NOT NULL DEFAULT 'Tek seferlik',
+      reminder_days_before INTEGER DEFAULT 0,
+      notes TEXT,
+      is_active INTEGER DEFAULT 1,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      updated_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS appointments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      customer_id INTEGER NOT NULL,
+      appointment_date TEXT NOT NULL,
+      appointment_time TEXT,
+      appointment_type TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'Planlandı',
+      notes TEXT,
+      created_by INTEGER,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      updated_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (customer_id) REFERENCES customers(id),
+      FOREIGN KEY (created_by) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS communication_templates (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      channel TEXT NOT NULL,
+      name TEXT NOT NULL,
+      subject TEXT,
+      body TEXT NOT NULL,
+      is_active INTEGER DEFAULT 1,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      updated_at TEXT DEFAULT (datetime('now', 'localtime'))
+    );
+
+    CREATE TABLE IF NOT EXISTS communication_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      customer_id INTEGER NOT NULL,
+      channel TEXT NOT NULL,
+      template_id INTEGER,
+      subject TEXT,
+      message TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'Hazırlandı',
+      sent_at TEXT,
+      created_by INTEGER,
+      notes TEXT,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (customer_id) REFERENCES customers(id),
+      FOREIGN KEY (template_id) REFERENCES communication_templates(id),
+      FOREIGN KEY (created_by) REFERENCES users(id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_appointments_date ON appointments(appointment_date, status);
+    CREATE INDEX IF NOT EXISTS idx_customer_dates ON customer_important_dates(customer_id, date);
+    CREATE INDEX IF NOT EXISTS idx_comm_logs_customer ON communication_logs(customer_id, created_at);
+  `);
+}
+
+function seedCustomerCategories(db: Database.Database): void {
+  const count = db
+    .prepare(`SELECT COUNT(*) as c FROM optical_lookup_values WHERE type = 'CUSTOMER_CATEGORY'`)
+    .get() as { c: number };
+  if (count.c > 0) return;
+  const insert = db.prepare(
+    `INSERT INTO optical_lookup_values (type, parent_id, name, code, sort_order, is_active) VALUES (?, NULL, ?, ?, ?, 1)`
+  );
+  const cats = ['Normal', 'VIP', 'Kurumsal', 'SGK', 'Çocuk', 'Lens Kullanıcısı', 'Kampanya Müşterisi', 'Borçlu Müşteri'];
+  cats.forEach((name, i) => insert.run('CUSTOMER_CATEGORY', name, name.toUpperCase().replace(/\s+/g, '_'), i + 1));
+}
+
+function seedCommunicationTemplates(db: Database.Database): void {
+  const count = db.prepare(`SELECT COUNT(*) as c FROM communication_templates`).get() as { c: number };
+  if (count.c > 0) return;
+  const insert = db.prepare(
+    `INSERT INTO communication_templates (channel, name, subject, body, is_active) VALUES (?, ?, ?, ?, 1)`
+  );
+  const templates: Array<[string, string, string | null, string]> = [
+    ['WHATSAPP', 'Randevu hatırlatma', null, 'Sayın {musteri_adi}, {randevu_tarihi} {randevu_saati} randevunuzu hatırlatırız. {firma_adi}'],
+    ['SMS', 'Randevu hatırlatma', null, 'Sayın {musteri_adi}, {randevu_tarihi} {randevu_saati} randevunuz var. {firma_adi}'],
+    ['EMAIL', 'Randevu hatırlatma', 'Randevu Hatırlatma', 'Sayın {musteri_adi},\n\n{randevu_tarihi} {randevu_saati} randevunuzu hatırlatırız.\n\n{firma_adi}'],
+    ['WHATSAPP', 'Borç bakiye hatırlatma', null, 'Sayın {musteri_adi}, cari bakiyeniz {bakiye}. {firma_adi}'],
+    ['SMS', 'Borç bakiye hatırlatma', null, 'Sayın {musteri_adi}, bakiyeniz {bakiye}. {firma_adi}'],
+    ['WHATSAPP', 'Doğum günü kutlama', null, 'İyi ki doğdunuz {musteri_adi}! {firma_adi} ailesi olarak nice sağlıklı yıllar dileriz.'],
+    ['WHATSAPP', 'Lens yenileme hatırlatma', null, 'Sayın {musteri_adi}, lens yenileme zamanınız yaklaşıyor. Son kontrol: {son_kontrol_tarihi}. {firma_adi}'],
+    ['WHATSAPP', 'Gözlük teslim hazır', null, 'Sayın {musteri_adi}, gözlüğünüz hazır. Teslim tarihi: {teslim_tarihi}. {firma_adi}'],
+    ['WHATSAPP', 'Kampanya bilgilendirme', null, 'Sayın {musteri_adi}, yeni kampanyalarımızdan haberdar olun. {firma_adi}'],
+  ];
+  for (const t of templates) insert.run(...t);
 }

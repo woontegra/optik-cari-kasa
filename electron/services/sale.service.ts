@@ -5,6 +5,9 @@ import { CASH_PAYMENT_TYPES } from '../types/sale';
 import { ProductService } from './product.service';
 import { CustomerAccountService } from './customerAccount.service';
 import { CashService } from './cash.service';
+import { PosService } from './pos.service';
+import { CampaignService } from './campaign.service';
+import type { ManualDiscountInput } from '../types/campaign';
 
 export interface CompleteSaleOptions {
   items: SaleItemInput[];
@@ -13,6 +16,9 @@ export interface CompleteSaleOptions {
   paidAmount?: number;
   customerId?: number | null;
   prescriptionId?: number | null;
+  posAccountId?: number | null;
+  campaignCode?: string | null;
+  manualDiscount?: ManualDiscountInput | null;
 }
 
 export class SaleValidationError extends Error {
@@ -47,11 +53,15 @@ export class SaleService {
   private productService: ProductService;
   private accountService: CustomerAccountService;
   private cashService: CashService;
+  private posService: PosService;
+  private campaignService: CampaignService;
 
   constructor(private db: Database.Database) {
     this.productService = new ProductService(db);
     this.accountService = new CustomerAccountService(db);
     this.cashService = new CashService(db);
+    this.posService = new PosService(db);
+    this.campaignService = new CampaignService(db);
   }
 
   list(filters: SaleListFilters = {}): Record<string, unknown>[] {
@@ -155,7 +165,17 @@ export class SaleService {
   }
 
   completeSale(options: CompleteSaleOptions): { saleId: number; saleNo: string } {
-    const { items, paymentMode, paymentType, paidAmount, customerId, prescriptionId } = options;
+    const {
+      items,
+      paymentMode,
+      paymentType,
+      paidAmount,
+      customerId,
+      prescriptionId,
+      posAccountId,
+      campaignCode,
+      manualDiscount,
+    } = options;
 
     if (!items.length) {
       throw new SaleValidationError('Satış listesi boş.');
@@ -224,7 +244,16 @@ export class SaleService {
       }
     }
 
-    const netAmount = items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0);
+    const calc = this.campaignService.calculateForSale({
+      items: items.map((i) => ({ productId: i.productId, quantity: i.quantity, unitPrice: i.originalUnitPrice ?? i.unitPrice })),
+      customerId,
+      campaignCode,
+      manualDiscount,
+    });
+
+    const grossTotal = calc.subtotal;
+    const totalDiscount = calc.campaignDiscountTotal + calc.manualDiscountAmount;
+    const netAmount = calc.netTotal;
     const { paid, remaining, paymentStatus } = resolvePaymentAmounts(netAmount, paymentMode, paidAmount);
     const saleNo = `SAT-${Date.now()}`;
 
@@ -233,15 +262,21 @@ export class SaleService {
         .prepare(
           `INSERT INTO sales (
             sale_no, customer_id, prescription_id, total_amount, discount_amount, net_amount,
+            total_discount_amount, manual_discount_amount, campaign_discount_amount, manual_discount_note,
             paid_amount, remaining_amount, payment_status, status, sale_date, updated_at
-          ) VALUES (?, ?, ?, ?, 0, ?, ?, ?, ?, 'Tamamlandı', datetime('now', 'localtime'), datetime('now', 'localtime'))`
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Tamamlandı', datetime('now', 'localtime'), datetime('now', 'localtime'))`
         )
         .run(
           saleNo,
           customerId || null,
           prescriptionId || null,
+          grossTotal,
+          totalDiscount,
           netAmount,
-          netAmount,
+          totalDiscount,
+          calc.manualDiscountAmount,
+          calc.campaignDiscountTotal,
+          manualDiscount?.description || null,
           paid,
           remaining,
           paymentStatus
@@ -250,8 +285,10 @@ export class SaleService {
       const saleId = Number(saleResult.lastInsertRowid);
 
       const insertItem = this.db.prepare(
-        `INSERT INTO sale_items (sale_id, product_id, barcode, quantity, unit_price, total_price, line_note)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`
+        `INSERT INTO sale_items (
+          sale_id, product_id, barcode, quantity, unit_price, total_price, line_note,
+          discount_amount, campaign_id, original_unit_price, final_unit_price
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       );
       const insertMovement = this.db.prepare(
         `INSERT INTO stock_movements (product_id, movement_type, quantity, unit_price, reference_type, reference_id, notes)
@@ -261,36 +298,60 @@ export class SaleService {
         `UPDATE products SET stock_quantity = stock_quantity - ?, updated_at = datetime('now', 'localtime') WHERE id = ?`
       );
 
-      for (const item of items) {
-        const totalPrice = item.quantity * item.unitPrice;
-        insertItem.run(
+      const saleItemIds: number[] = [];
+
+      for (let idx = 0; idx < items.length; idx++) {
+        const item = items[idx];
+        const calcLine = calc.items[idx];
+        const finalUnit = calcLine?.unitPrice ?? item.unitPrice;
+        const totalPrice = calcLine?.lineTotal ?? item.quantity * finalUnit;
+        const originalUnit = calcLine?.originalUnitPrice ?? item.originalUnitPrice ?? item.unitPrice;
+        const lineDiscount = calcLine?.discountAmount ?? 0;
+        const campaignId = calcLine?.campaignId ?? item.campaignId ?? null;
+
+        const itemResult = insertItem.run(
           saleId,
           item.productId,
           item.barcode || null,
           item.quantity,
-          item.unitPrice,
+          finalUnit,
           totalPrice,
-          item.lineNote || null
+          item.lineNote || null,
+          lineDiscount,
+          campaignId,
+          originalUnit,
+          finalUnit
         );
-        insertMovement.run(item.productId, -item.quantity, item.unitPrice, saleId, `Satış: ${saleNo}`);
+        saleItemIds.push(Number(itemResult.lastInsertRowid));
+        insertMovement.run(item.productId, -item.quantity, finalUnit, saleId, `Satış: ${saleNo}`);
         updateStock.run(item.quantity, item.productId);
       }
 
-      if (paid > 0 && cashPaymentType) {
-        this.db
-          .prepare(
-            `INSERT INTO payments (sale_id, customer_id, amount, payment_type, description, payment_date)
-             VALUES (?, ?, ?, ?, ?, datetime('now', 'localtime'))`
-          )
-          .run(saleId, customerId || null, paid, cashPaymentType, `Satış tahsilatı: ${saleNo}`);
+      this.campaignService.recordSaleDiscounts(saleId, saleItemIds, calc, manualDiscount?.description);
 
-        this.cashService.recordSalePayment(
-          saleId,
-          customerId || null,
-          paid,
-          cashPaymentType,
-          `Satış: ${saleNo}`
-        );
+      if (paid > 0 && cashPaymentType) {
+        const payResult = this.db
+          .prepare(
+            `INSERT INTO payments (sale_id, customer_id, amount, payment_type, description, payment_date, pos_account_id)
+             VALUES (?, ?, ?, ?, ?, datetime('now', 'localtime'), ?)`
+          )
+          .run(saleId, customerId || null, paid, cashPaymentType, `Satış tahsilatı: ${saleNo}`, posAccountId ?? null);
+
+        if (cashPaymentType === 'Kredi Kartı') {
+          const posId = posAccountId ?? (this.posService.getDefaultAccount()?.id as number | undefined);
+          if (posId) {
+            const posMove = this.posService.recordSalePayment(saleId, posId, paid);
+            this.db.prepare(`UPDATE payments SET pos_movement_id = ? WHERE id = ?`).run(posMove.id, payResult.lastInsertRowid);
+          }
+        } else {
+          this.cashService.recordSalePayment(
+            saleId,
+            customerId || null,
+            paid,
+            cashPaymentType,
+            `Satış: ${saleNo}`
+          );
+        }
       }
 
       if (remaining > 0 && customerId) {
@@ -478,6 +539,8 @@ export class SaleService {
            updated_at = datetime('now', 'localtime') WHERE id = ?`
         )
         .run(reason.trim(), note?.trim() || null, saleId);
+
+      this.campaignService.cancelSaleUsages(saleId);
     });
 
     tx();

@@ -79,11 +79,18 @@ export function registerCustomerHandlers(ipcMain: IpcMain): void {
   ipcMain.handle('customers:update', (_event, id: number, input: CustomerInput) => {
     try {
       const session = requirePermission(PERMISSIONS.CUSTOMERS_EDIT);
+      const existing = getService().getById(id);
       const result = getService().update(id, input);
       auditAction(session.id, 'Güncelleme', 'Müşteri', `Müşteri güncellendi: ${input.full_name}`, {
         entityType: 'customer',
         entityId: id,
       });
+      if (existing && existing.customer_category !== input.customer_category) {
+        auditAction(session.id, 'Kategori Değişikliği', 'Müşteri', `Kategori: ${input.customer_category || '-'}`, {
+          entityType: 'customer',
+          entityId: id,
+        });
+      }
       return success(result);
     } catch (err) {
       return handleError(err);
@@ -93,6 +100,9 @@ export function registerCustomerHandlers(ipcMain: IpcMain): void {
   ipcMain.handle('customers:deactivate', (_event, id: number) => {
     try {
       const session = requirePermission(PERMISSIONS.CUSTOMERS_EDIT);
+      if (session.role === 'Satış Personeli') {
+        return failure('Satış personeli müşteri pasife alamaz.');
+      }
       const result = getService().deactivate(id);
       auditAction(session.id, 'Pasife alma', 'Müşteri', `Müşteri pasife alındı #${id}`, {
         entityType: 'customer',

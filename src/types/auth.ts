@@ -32,6 +32,15 @@ export const PERMISSIONS = {
   SUPPLIERS_VIEW: 'suppliers.view',
   SUPPLIERS_EDIT: 'suppliers.edit',
   SUPPLIER_PAYMENTS: 'suppliers.payments',
+  FINANCE_VIEW: 'finance.view',
+  FINANCE_EDIT: 'finance.edit',
+  CAMPAIGN_VIEW: 'campaigns.view',
+  CAMPAIGN_EDIT: 'campaigns.edit',
+  MANUAL_DISCOUNT: 'sales.manual_discount',
+  APPOINTMENTS_VIEW: 'appointments.view',
+  APPOINTMENTS_EDIT: 'appointments.edit',
+  COMMUNICATIONS_VIEW: 'communications.view',
+  COMMUNICATIONS_EDIT: 'communications.edit',
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -60,6 +69,15 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
   'suppliers.view': 'Tedarikçi görüntüleme',
   'suppliers.edit': 'Tedarikçi ve alış belgesi düzenleme',
   'suppliers.payments': 'Tedarikçi ödemesi yapma',
+  'finance.view': 'Finans görüntüleme',
+  'finance.edit': 'Finans işlemleri',
+  'campaigns.view': 'Kampanya görüntüleme',
+  'campaigns.edit': 'Kampanya oluşturma/düzenleme',
+  'sales.manual_discount': 'Manuel indirim uygulama',
+  'appointments.view': 'Randevu görüntüleme',
+  'appointments.edit': 'Randevu oluşturma/düzenleme',
+  'communications.view': 'İletişim geçmişi görüntüleme',
+  'communications.edit': 'Mesaj hazırlama',
 };
 
 export interface UserSession {
@@ -98,6 +116,12 @@ export const ROUTE_PERMISSIONS: Record<string, Permission | Permission[] | null>
   '/medula': PERMISSIONS.MEDULA_VIEW,
   '/satis': PERMISSIONS.SALES_CREATE,
   '/kasa': PERMISSIONS.CASH_VIEW,
+  '/banka-pos': PERMISSIONS.FINANCE_VIEW,
+  '/giderler': PERMISSIONS.FINANCE_VIEW,
+  '/acik-hesaplar': PERMISSIONS.FINANCE_VIEW,
+  '/ekstreler': PERMISSIONS.FINANCE_VIEW,
+  '/kar-zarar': PERMISSIONS.FINANCE_VIEW,
+  '/kampanyalar': PERMISSIONS.CAMPAIGN_VIEW,
   '/raporlar': PERMISSIONS.REPORTS_VIEW,
   '/yedekleme': PERMISSIONS.BACKUP_MANAGE,
   '/kullanicilar': PERMISSIONS.USERS_MANAGE,

@@ -195,6 +195,31 @@ export interface Customer {
   sms_permission?: boolean;
   email_permission?: boolean;
   is_active?: number;
+  customer_category?: string | null;
+  photo_path?: string | null;
+  second_phone?: string | null;
+  whatsapp_phone?: string | null;
+  institution_name?: string | null;
+  institution_no?: string | null;
+  occupation?: string | null;
+  reference_source?: string | null;
+  referred_by_customer_id?: number | null;
+  referred_by_name?: string;
+  last_visit_date?: string | null;
+  next_control_date?: string | null;
+  whatsapp_permission?: boolean;
+  marketing_permission?: boolean;
+  important_note?: string | null;
+  risk_note?: string | null;
+  is_vip?: boolean;
+  last_prescription_no?: string;
+  last_prescription_date?: string;
+  next_appointment?: {
+    id: number;
+    appointment_date: string;
+    appointment_time?: string;
+    appointment_type: string;
+  };
 }
 
 // Re-export from customer types
@@ -236,6 +261,17 @@ export interface DashboardStats {
   pendingPurchaseCount?: number;
   pendingPurchaseTotal?: number;
   supplierDebtTotal?: number;
+  bankBalanceTotal?: number;
+  posPendingTotal?: number;
+  todayExpense?: number;
+  customerOpenTotal?: number;
+  todayNetProfit?: number;
+  activeCampaignCount?: number;
+  todayCampaignDiscount?: number;
+  todayAppointments?: number;
+  upcomingControls?: number;
+  debtorsCount?: number;
+  lensRenewalSoon?: number;
   recentSales: unknown[];
   recentCashMovements: Array<{
     id: number;
@@ -254,6 +290,9 @@ export interface CompleteSaleOptions {
   paymentMode: PaymentType;
   paymentType?: CashPaymentType;
   paidAmount?: number;
+  posAccountId?: number | null;
+  campaignCode?: string | null;
+  manualDiscount?: import('@/types/campaign').ManualDiscountInput | null;
 }
 
 export const PAYMENT_TYPES = ['Nakit', 'Kredi Kartı', 'Havale/EFT', 'Açık Hesap', 'Parçalı Ödeme'] as const;
@@ -280,6 +319,10 @@ export interface SaleLineItem {
   barcode: string;
   quantity: number;
   unitPrice: number;
+  originalUnitPrice?: number;
+  discountAmount?: number;
+  campaignId?: number | null;
+  campaignName?: string | null;
   total: number;
   stockQuantity: number;
   note?: string;

@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
 import { ipc } from '@/services/ipc';
 import { formatCurrency } from '@/utils/format';
 import type { Customer, CashPaymentType, PaymentType, Prescription, Product, SaleLineItem } from '@/types/electron';
 import { PAYMENT_TYPES, CASH_PAYMENT_TYPES } from '@/types/electron';
+import { PERMISSIONS } from '@/types/auth';
+import type { CalculateSaleResult } from '@/types/campaign';
 import { sanitizeBarcode } from '@/utils/barcode';
 import { formatScanNote, lineKey } from '@/types/barcode';
 import type { ParsedBarcode } from '@/types/barcode';
@@ -18,12 +21,21 @@ function Toast({ message, onDone }: { message: string; onDone: () => void }) {
 }
 
 export default function SalePage() {
+  const { hasPermission } = useAuth();
+  const canManualDiscount = hasPermission(PERMISSIONS.MANUAL_DISCOUNT);
   const [barcode, setBarcode] = useState('');
   const [items, setItems] = useState<SaleLineItem[]>([]);
   const [error, setError] = useState('');
   const [paymentMode, setPaymentMode] = useState<PaymentType>('Nakit');
   const [partialPaymentType, setPartialPaymentType] = useState<CashPaymentType>('Nakit');
   const [paidAmountInput, setPaidAmountInput] = useState('');
+  const [posAccountId, setPosAccountId] = useState<number | ''>('');
+  const [posAccounts, setPosAccounts] = useState<Record<string, unknown>[]>([]);
+  const [campaignCode, setCampaignCode] = useState('');
+  const [manualDiscountType, setManualDiscountType] = useState<'percent' | 'amount'>('percent');
+  const [manualDiscountValue, setManualDiscountValue] = useState('');
+  const [manualDiscountDesc, setManualDiscountDesc] = useState('');
+  const [calcResult, setCalcResult] = useState<CalculateSaleResult | null>(null);
   const [completing, setCompleting] = useState(false);
   const [toast, setToast] = useState('');
 
@@ -47,6 +59,14 @@ export default function SalePage() {
   }, [focusInput]);
 
   useEffect(() => {
+    ipc.pos.listAccounts().then((accounts) => {
+      setPosAccounts(accounts);
+      const def = accounts.find((a) => Number(a.is_active));
+      if (def) setPosAccountId(Number(def.id));
+    }).catch(console.error);
+  }, []);
+
+  useEffect(() => {
     if (!selectedCustomer) {
       setCustomerPrescriptions([]);
       setSelectedPrescriptionId(null);
@@ -54,6 +74,35 @@ export default function SalePage() {
     }
     ipc.prescriptions.listByCustomer(selectedCustomer.id, true).then(setCustomerPrescriptions).catch(console.error);
   }, [selectedCustomer]);
+
+  const itemsKey = items.map((i) => `${i.productId}:${i.quantity}:${i.lineId}`).join('|');
+
+  useEffect(() => {
+    if (!items.length) {
+      setCalcResult(null);
+      return;
+    }
+    const manualVal = parseFloat(manualDiscountValue) || 0;
+    const timer = setTimeout(() => {
+      ipc.campaigns
+        .calculateForSale({
+          items: items.map((i) => ({
+            productId: i.productId,
+            quantity: i.quantity,
+            unitPrice: i.originalUnitPrice ?? i.unitPrice,
+          })),
+          customerId: selectedCustomer?.id ?? null,
+          campaignCode: campaignCode.trim() || null,
+          manualDiscount:
+            canManualDiscount && manualVal > 0
+              ? { type: manualDiscountType, value: manualVal, description: manualDiscountDesc || undefined }
+              : null,
+        })
+        .then(setCalcResult)
+        .catch(console.error);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [itemsKey, selectedCustomer?.id, campaignCode, manualDiscountValue, manualDiscountType, manualDiscountDesc, canManualDiscount, items]);
 
   const searchCustomers = (query: string) => {
     setCustomerSearch(query);
@@ -143,6 +192,10 @@ export default function SalePage() {
           barcode: parsed?.barcode || product.barcode || '',
           quantity: 1,
           unitPrice: product.sale_price,
+          originalUnitPrice: product.sale_price,
+          discountAmount: 0,
+          campaignId: null,
+          campaignName: null,
           total: product.sale_price,
           stockQuantity: product.stock_quantity,
           note: note || undefined,
@@ -207,10 +260,17 @@ export default function SalePage() {
       setError('Açık hesap ve parçalı ödeme için müşteri seçimi zorunludur.');
       return;
     }
-    const total = items.reduce((sum, i) => sum + i.total, 0);
+    const total = calcResult?.netTotal ?? items.reduce((sum, i) => sum + i.total, 0);
     const paidAmount = paymentMode === 'Parçalı Ödeme' ? parseFloat(paidAmountInput) || 0 : undefined;
     if (paymentMode === 'Parçalı Ödeme' && paidAmount > total) {
       setError('Alınan tutar toplam tutardan fazla olamaz.');
+      return;
+    }
+    const cardPayment =
+      paymentMode === 'Kredi Kartı' ||
+      (paymentMode === 'Parçalı Ödeme' && partialPaymentType === 'Kredi Kartı');
+    if (cardPayment && !posAccountId && posAccounts.length === 0) {
+      setError('POS hesabı tanımlı değil. Banka/POS menüsünden POS hesabı ekleyin.');
       return;
     }
     setCompleting(true);
@@ -222,12 +282,26 @@ export default function SalePage() {
         paymentMode,
         paymentType: paymentMode === 'Parçalı Ödeme' ? partialPaymentType : undefined,
         paidAmount,
+        posAccountId: cardPayment ? (posAccountId || null) : undefined,
+        campaignCode: campaignCode.trim() || null,
+        manualDiscount:
+          canManualDiscount && (parseFloat(manualDiscountValue) || 0) > 0
+            ? {
+                type: manualDiscountType,
+                value: parseFloat(manualDiscountValue) || 0,
+                description: manualDiscountDesc || undefined,
+              }
+            : null,
       });
       const label = selectedCustomer ? selectedCustomer.full_name : 'Hızlı satış';
       setToast(`Satış tamamlandı (${label}): ${result.saleNo}`);
       setItems([]);
       setBarcode('');
       setPaidAmountInput('');
+      setCampaignCode('');
+      setManualDiscountValue('');
+      setManualDiscountDesc('');
+      setCalcResult(null);
       clearCustomer();
       focusInput();
     } catch (err) {
@@ -237,7 +311,10 @@ export default function SalePage() {
     }
   };
 
-  const totalAmount = items.reduce((sum, i) => sum + i.total, 0);
+  const subtotal = calcResult?.subtotal ?? items.reduce((sum, i) => sum + (i.originalUnitPrice ?? i.unitPrice) * i.quantity, 0);
+  const campaignDiscount = calcResult?.campaignDiscountTotal ?? 0;
+  const manualDiscount = calcResult?.manualDiscountAmount ?? 0;
+  const totalAmount = calcResult?.netTotal ?? items.reduce((sum, i) => sum + i.total, 0);
   const selectedPrescription = customerPrescriptions.find((p) => p.id === selectedPrescriptionId);
 
   return (
@@ -335,30 +412,73 @@ export default function SalePage() {
                 <th>Not (Seri/Lot/SKT)</th>
                 <th className="text-center">Adet</th>
                 <th className="text-right">Birim Fiyat</th>
-                <th className="text-right">Toplam</th>
+                <th className="text-right">İndirim</th>
+                <th>Kampanya</th>
+                <th className="text-right">Satır Toplamı</th>
                 <th className="text-center">Sil</th>
               </tr>
             </thead>
             <tbody>
               {items.length === 0 ? (
-                <tr><td colSpan={7} className="empty-text">Barkod okutarak ürün ekleyin</td></tr>
+                <tr><td colSpan={9} className="empty-text">Barkod okutarak ürün ekleyin</td></tr>
               ) : (
-                items.map((item) => (
+                items.map((item, idx) => {
+                  const lineCalc = calcResult?.items[idx];
+                  const orig = lineCalc?.originalUnitPrice ?? item.originalUnitPrice ?? item.unitPrice;
+                  const disc = lineCalc?.discountAmount ?? item.discountAmount ?? 0;
+                  const camp = lineCalc?.campaignName ?? item.campaignName;
+                  const lineTotal = lineCalc?.lineTotal ?? item.total;
+                  return (
                   <tr key={item.lineId}>
                     <td>{item.barcode}</td>
                     <td>{item.name}</td>
                     <td style={{ fontSize: 11 }}>{item.note || '-'}</td>
                     <td className="text-center">{item.quantity}</td>
-                    <td className="text-right">{formatCurrency(item.unitPrice)}</td>
-                    <td className="text-right">{formatCurrency(item.total)}</td>
+                    <td className="text-right">{formatCurrency(orig)}</td>
+                    <td className="text-right amount-negative">
+                      {disc > 0 ? `-${formatCurrency(disc)}` : '-'}
+                    </td>
+                    <td style={{ fontSize: 11 }}>{camp || '-'}</td>
+                    <td className="text-right">{formatCurrency(lineTotal)}</td>
                     <td className="text-center">
                       <button type="button" className="btn btn-remove" onClick={() => removeItem(item.lineId)}>Sil</button>
                     </td>
                   </tr>
-                ))
+                  );
+                })
               )}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <div className="panel" style={{ marginBottom: 8 }}>
+        <div className="panel-body">
+          <div className="form-row" style={{ alignItems: 'flex-end' }}>
+            <div className="form-group">
+              <label>Kampanya Kodu</label>
+              <input className="form-input" value={campaignCode} onChange={(e) => setCampaignCode(e.target.value)} placeholder="Kupon kodu" />
+            </div>
+            {canManualDiscount && (
+              <>
+                <div className="form-group">
+                  <label>Manuel İndirim</label>
+                  <select className="form-select" value={manualDiscountType} onChange={(e) => setManualDiscountType(e.target.value as 'percent' | 'amount')}>
+                    <option value="percent">Yüzde</option>
+                    <option value="amount">Tutar</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Değer</label>
+                  <input type="number" className="form-input" value={manualDiscountValue} onChange={(e) => setManualDiscountValue(e.target.value)} />
+                </div>
+                <div className="form-group">
+                  <label>Açıklama</label>
+                  <input className="form-input" value={manualDiscountDesc} onChange={(e) => setManualDiscountDesc(e.target.value)} />
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
@@ -384,8 +504,20 @@ export default function SalePage() {
             />
           </>
         )}
+        {(paymentMode === 'Kredi Kartı' || (paymentMode === 'Parçalı Ödeme' && partialPaymentType === 'Kredi Kartı')) && posAccounts.length > 0 && (
+          <select className="form-select" value={posAccountId} onChange={(e) => setPosAccountId(e.target.value ? Number(e.target.value) : '')}>
+            {posAccounts.filter((p) => Number(p.is_active)).map((p) => (
+              <option key={String(p.id)} value={String(p.id)}>{String(p.name)}</option>
+            ))}
+          </select>
+        )}
         <div className="toolbar-spacer" />
-        <span style={{ fontWeight: 600 }}>Toplam: {formatCurrency(totalAmount)}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', fontSize: 12, gap: 2 }}>
+          <span>Ara toplam: {formatCurrency(subtotal)}</span>
+          {campaignDiscount > 0 && <span className="amount-negative">Kampanya: -{formatCurrency(campaignDiscount)}</span>}
+          {manualDiscount > 0 && <span className="amount-negative">Manuel: -{formatCurrency(manualDiscount)}</span>}
+          <span style={{ fontWeight: 600 }}>Genel toplam: {formatCurrency(totalAmount)}</span>
+        </div>
         <button className="btn btn-primary" onClick={handleCompleteSale} disabled={completing || items.length === 0}>
           {completing ? 'Tamamlanıyor...' : 'Satışı Tamamla'}
         </button>

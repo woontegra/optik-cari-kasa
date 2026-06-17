@@ -109,12 +109,17 @@ export class PrintService {
 
     const itemsHtml = items
       .map(
-        (i) => `<tr>
+        (i) => {
+          const orig = Number(i.original_unit_price || i.unit_price);
+          const disc = Number(i.discount_amount || 0);
+          return `<tr>
           <td>${i.product_name}</td>
           <td class="right">${i.quantity}</td>
-          <td class="right">${formatCurrency(i.unit_price as number)}</td>
+          <td class="right">${formatCurrency(orig)}</td>
+          <td class="right">${disc > 0 ? `-${formatCurrency(disc)}` : '-'}</td>
           <td class="right">${formatCurrency(i.total_price as number)}</td>
-        </tr>`
+        </tr>`;
+        }
       )
       .join('');
 
@@ -131,11 +136,15 @@ export class PrintService {
           <div><span>Ödeme Durumu:</span> ${sale.payment_status}</div>
         </div>
         <table>
-          <thead><tr><th>Ürün</th><th class="right">Adet</th><th class="right">Birim</th><th class="right">Toplam</th></tr></thead>
+          <thead><tr><th>Ürün</th><th class="right">Adet</th><th class="right">Birim</th><th class="right">İndirim</th><th class="right">Net</th></tr></thead>
           <tbody>${itemsHtml}</tbody>
         </table>
-        <div class="totals">
-          <div class="row"><span>Toplam</span><span>${formatCurrency(sale.net_amount as number)}</span></div>
+        <div className="totals">
+          <div class="row"><span>Ara Toplam</span><span>${formatCurrency((sale.total_amount as number) || sale.net_amount as number)}</span></div>
+          ${Number(sale.campaign_discount_amount) > 0 ? `<div class="row"><span>Kampanya İndirimi</span><span>-${formatCurrency(sale.campaign_discount_amount as number)}</span></div>` : ''}
+          ${Number(sale.manual_discount_amount) > 0 ? `<div class="row"><span>Manuel İndirim</span><span>-${formatCurrency(sale.manual_discount_amount as number)}</span></div>` : ''}
+          ${Number(sale.discount_amount) > 0 && !sale.campaign_discount_amount ? `<div class="row"><span>İndirim</span><span>-${formatCurrency(sale.discount_amount as number)}</span></div>` : ''}
+          <div class="row"><span>Genel Toplam</span><span>${formatCurrency(sale.net_amount as number)}</span></div>
           <div class="row"><span>Ödenen</span><span>${formatCurrency(sale.paid_amount as number)}</span></div>
           <div class="row"><span>Kalan</span><span>${formatCurrency(sale.remaining_amount as number)}</span></div>
           <div class="row"><span>Ödeme Türü</span><span>${paymentTypes}</span></div>

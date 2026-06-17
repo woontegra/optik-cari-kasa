@@ -22,6 +22,8 @@ function handleError(err: unknown) {
   return failure((err as Error).message);
 }
 
+import type { ManualDiscountInput } from '../types/campaign';
+
 export interface CompleteSalePayload {
   items: SaleItemInput[];
   paymentMode: PaymentType;
@@ -29,6 +31,9 @@ export interface CompleteSalePayload {
   paidAmount?: number;
   customerId?: number | null;
   prescriptionId?: number | null;
+  posAccountId?: number | null;
+  campaignCode?: string | null;
+  manualDiscount?: ManualDiscountInput | null;
 }
 
 export function registerSalesHandlers(ipcMain: IpcMain): void {
@@ -65,6 +70,10 @@ export function registerSalesHandlers(ipcMain: IpcMain): void {
         return failure('Geçersiz ödeme türü.');
       }
 
+      if (payload.manualDiscount?.value && payload.manualDiscount.value > 0) {
+        requirePermission(PERMISSIONS.MANUAL_DISCOUNT);
+      }
+
       const result = getService().completeSale({
         items: payload.items,
         paymentMode: payload.paymentMode,
@@ -72,11 +81,26 @@ export function registerSalesHandlers(ipcMain: IpcMain): void {
         paidAmount: payload.paidAmount,
         customerId: payload.customerId,
         prescriptionId: payload.prescriptionId,
+        posAccountId: payload.posAccountId,
+        campaignCode: payload.campaignCode,
+        manualDiscount: payload.manualDiscount,
       });
       auditAction(session.id, 'Oluşturma', 'Satış', `Satış oluşturuldu: ${result.saleNo}`, {
         entityType: 'sale',
         entityId: result.saleId,
       });
+      if (payload.campaignCode?.trim()) {
+        auditAction(session.id, 'Kampanya', 'Satış', `Kampanya kodu: ${payload.campaignCode}`, {
+          entityType: 'sale',
+          entityId: result.saleId,
+        });
+      }
+      if (payload.manualDiscount?.value && payload.manualDiscount.value > 0) {
+        auditAction(session.id, 'Manuel İndirim', 'Satış', payload.manualDiscount.description || 'Manuel indirim', {
+          entityType: 'sale',
+          entityId: result.saleId,
+        });
+      }
       return success(result);
     } catch (err) {
       return handleError(err);

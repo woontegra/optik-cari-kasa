@@ -12,6 +12,21 @@ export interface CustomerInput {
   sms_permission?: boolean;
   email_permission?: boolean;
   is_active?: boolean;
+  customer_category?: string;
+  second_phone?: string;
+  whatsapp_phone?: string;
+  institution_name?: string;
+  institution_no?: string;
+  occupation?: string;
+  reference_source?: string;
+  referred_by_customer_id?: number | null;
+  last_visit_date?: string;
+  next_control_date?: string;
+  whatsapp_permission?: boolean;
+  marketing_permission?: boolean;
+  important_note?: string;
+  risk_note?: string;
+  is_vip?: boolean;
 }
 
 export interface Customer extends CustomerInput {
@@ -19,13 +34,33 @@ export interface Customer extends CustomerInput {
   balance: number;
   last_sale_date: string | null;
   status?: string;
+  photo_path?: string | null;
   created_at?: string;
   updated_at?: string;
+  referred_by_name?: string;
+  last_prescription_no?: string;
+  last_prescription_date?: string;
+  next_appointment?: {
+    id: number;
+    appointment_date: string;
+    appointment_time?: string;
+    appointment_type: string;
+  };
 }
 
 export interface CustomerListFilters {
   search?: string;
   status?: string;
+  customer_category?: string;
+  birthday_this_month?: boolean;
+  upcoming_control?: boolean;
+  lens_renewal_soon?: boolean;
+  has_debt?: boolean;
+  inactive_6_months?: boolean;
+  marketing_permission?: boolean;
+  whatsapp_permission?: boolean;
+  sms_permission?: boolean;
+  email_permission?: boolean;
 }
 
 export interface CustomerQuickInput {

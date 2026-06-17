@@ -127,6 +127,8 @@ export const ipc = {
           barcode: i.barcode,
           quantity: i.quantity,
           unitPrice: i.unitPrice,
+          originalUnitPrice: i.originalUnitPrice ?? i.unitPrice,
+          campaignId: i.campaignId ?? null,
           lineNote: i.note,
         })),
         paymentMode: options.paymentMode,
@@ -134,6 +136,9 @@ export const ipc = {
         paidAmount: options.paidAmount,
         customerId: options.customerId ?? null,
         prescriptionId: options.prescriptionId ?? null,
+        posAccountId: options.posAccountId ?? null,
+        campaignCode: options.campaignCode ?? null,
+        manualDiscount: options.manualDiscount ?? null,
       }),
     addPayment: (input: AddPaymentInput) => invoke<{ paymentId: number }>('sales:addPayment', input),
     cancel: (input: import('@/types/returns').CancelSaleInput) =>
@@ -155,6 +160,51 @@ export const ipc = {
     getSales: (customerId: number) => invoke<import('@/types/electron').CustomerSale[]>('customers:getSales', customerId),
     getAccountMovements: (customerId: number) =>
       invoke<CustomerAccountMovement[]>('customers:getAccountMovements', customerId),
+    uploadPhoto: (customerId: number) =>
+      invoke<{ photo_path?: string; cancelled?: boolean }>('customers:uploadPhoto', customerId),
+    removePhoto: (customerId: number) => invoke<{ removed: boolean }>('customers:removePhoto', customerId),
+    getPhotoData: (customerId: number) => invoke<{ dataUrl: string | null }>('customers:getPhotoData', customerId),
+    listCategories: () => invoke<import('@/types/customerTracking').CustomerCategory[]>('customers:listCategories'),
+    getReminderLists: (filters?: import('@/types/customerTracking').CustomerReminderListFilters) =>
+      invoke<import('@/types/electron').Customer[]>('customers:getReminderLists', filters),
+    exportReminderList: (filters?: import('@/types/customerTracking').CustomerReminderListFilters) =>
+      invoke<{ exported: boolean; filePath?: string }>('customers:exportReminderList', filters),
+  },
+  appointments: {
+    list: (filters?: import('@/types/customerTracking').AppointmentListFilters) =>
+      invoke<import('@/types/customerTracking').Appointment[]>('appointments:list', filters),
+    getByCustomer: (customerId: number) =>
+      invoke<import('@/types/customerTracking').Appointment[]>('appointments:getByCustomer', customerId),
+    create: (input: Record<string, unknown>) => invoke<{ id: number }>('appointments:create', input),
+    update: (id: number, input: Record<string, unknown>) => invoke<{ id: number }>('appointments:update', id, input),
+    updateStatus: (id: number, status: string) => invoke<{ id: number }>('appointments:updateStatus', id, status),
+    cancel: (id: number) => invoke<{ id: number }>('appointments:cancel', id),
+  },
+  customerDates: {
+    list: (customerId: number) =>
+      invoke<import('@/types/customerTracking').ImportantDate[]>('customerDates:list', customerId),
+    create: (input: Record<string, unknown>) => invoke<{ id: number }>('customerDates:create', input),
+    update: (id: number, input: Record<string, unknown>) => invoke<{ id: number }>('customerDates:update', id, input),
+    deactivate: (id: number) => invoke<{ id: number }>('customerDates:deactivate', id),
+  },
+  communications: {
+    listTemplates: () =>
+      invoke<import('@/types/customerTracking').CommunicationTemplate[]>('communicationTemplates:list'),
+    createTemplate: (input: Record<string, unknown>) =>
+      invoke<{ id: number }>('communicationTemplates:create', input),
+    updateTemplate: (id: number, input: Record<string, unknown>) =>
+      invoke<{ id: number }>('communicationTemplates:update', id, input),
+    deactivateTemplate: (id: number) => invoke<{ id: number }>('communicationTemplates:deactivate', id),
+    prepareMessage: (input: Record<string, unknown>) =>
+      invoke<import('@/types/customerTracking').PreparedMessage>('communications:prepareMessage', input),
+    log: (input: Record<string, unknown>) => invoke<{ id: number }>('communications:log', input),
+    markSent: (id: number) => invoke<{ id: number }>('communications:markSent', id),
+    listByCustomer: (customerId: number) =>
+      invoke<import('@/types/customerTracking').CommunicationLog[]>('communications:listByCustomer', customerId),
+  },
+  customerDocuments: {
+    print: (documentType: import('@/types/customerTracking').CustomerDocumentType, customerId: number) =>
+      invoke<{ html: string; title: string }>('customerDocuments:print', documentType, customerId),
   },
   customerAccount: {
     getBalance: (customerId: number) => invoke<{ balance: number }>('customerAccount:getBalance', customerId),
@@ -445,6 +495,81 @@ export const ipc = {
       invoke<{ exported: boolean; filePath?: string }>('reports:exportExcel', payload),
     print: (payload: import('@/types/reports').PrintReportPayload) =>
       invoke<{ html: string; title: string }>('reports:print', payload),
+  },
+  banks: {
+    listAccounts: (activeOnly = true) => invoke<Record<string, unknown>[]>('banks:listAccounts', activeOnly),
+    createAccount: (input: import('@/types/finance').BankAccountInput) =>
+      invoke<{ id: number }>('banks:createAccount', input),
+    updateAccount: (id: number, input: Partial<import('@/types/finance').BankAccountInput>) =>
+      invoke<{ id: number }>('banks:updateAccount', id, input),
+    addMovement: (input: import('@/types/finance').BankMovementInput) =>
+      invoke<{ id: number }>('banks:addMovement', input),
+    listMovements: (filters?: { bank_account_id?: number; date_from?: string; date_to?: string }) =>
+      invoke<Record<string, unknown>[]>('banks:listMovements', filters),
+    transferCashToBank: (payload: { bank_account_id: number; amount: number; description?: string }) =>
+      invoke<{ cashMovementId: number; bankMovementId: number }>('banks:transferCashToBank', payload),
+    transferBankToCash: (payload: { bank_account_id: number; amount: number; description?: string }) =>
+      invoke<{ cashMovementId: number; bankMovementId: number }>('banks:transferBankToCash', payload),
+  },
+  pos: {
+    listAccounts: (activeOnly = true) => invoke<Record<string, unknown>[]>('pos:listAccounts', activeOnly),
+    createAccount: (input: import('@/types/finance').PosAccountInput) =>
+      invoke<{ id: number }>('pos:createAccount', input),
+    updateAccount: (id: number, input: Partial<import('@/types/finance').PosAccountInput>) =>
+      invoke<{ id: number }>('pos:updateAccount', id, input),
+    listMovements: (filters?: Record<string, unknown>) =>
+      invoke<Record<string, unknown>[]>('pos:listMovements', filters),
+  },
+  expenses: {
+    list: (filters?: Record<string, unknown>) => invoke<Record<string, unknown>[]>('expenses:list', filters),
+    create: (input: import('@/types/finance').ExpenseInput) => invoke<{ id: number }>('expenses:create', input),
+    createPersonnel: (input: import('@/types/finance').PersonnelExpenseInput) =>
+      invoke<{ id: number }>('expenses:createPersonnel', input),
+    cancel: (id: number) => invoke<{ cancelled: boolean }>('expenses:cancel', id),
+  },
+  statements: {
+    getCustomer: (customerId: number, filter?: import('@/types/finance').StatementFilter) =>
+      invoke<{ rows: Record<string, unknown>[]; openingBalance: number }>('statements:getCustomer', customerId, filter),
+    getSupplier: (supplierId: number, filter?: import('@/types/finance').StatementFilter) =>
+      invoke<{ rows: Record<string, unknown>[]; openingBalance: number }>('statements:getSupplier', supplierId, filter),
+    getCash: (filter?: import('@/types/finance').StatementFilter) =>
+      invoke<{ rows: Record<string, unknown>[]; openingBalance: number }>('statements:getCash', filter),
+    getBank: (bankAccountId: number, filter?: import('@/types/finance').StatementFilter) =>
+      invoke<{ rows: Record<string, unknown>[]; openingBalance: number }>('statements:getBank', bankAccountId, filter),
+    getPos: (posAccountId: number, filter?: import('@/types/finance').StatementFilter) =>
+      invoke<{ rows: Record<string, unknown>[]; posName: string }>('statements:getPos', posAccountId, filter),
+    print: (payload: { title: string; subtitle: string; rows: Record<string, unknown>[] }) =>
+      invoke<string>('statements:print', payload),
+  },
+  profitLoss: {
+    getSummary: (filter?: import('@/types/finance').ProfitLossFilter) =>
+      invoke<Record<string, unknown>>('profitLoss:getSummary', filter),
+    getDetail: (filter?: import('@/types/finance').ProfitLossFilter) =>
+      invoke<Record<string, unknown>>('profitLoss:getDetail', filter),
+    exportExcel: (payload: { fileName: string; rows: Record<string, unknown>[] }) =>
+      invoke<{ exported: boolean; filePath?: string }>('profitLoss:exportExcel', payload),
+    print: (payload: { title: string; subtitle: string; rows: Record<string, unknown>[] }) =>
+      invoke<string>('profitLoss:print', payload),
+  },
+  campaigns: {
+    list: (filters?: { status?: string; activeOnly?: boolean }) =>
+      invoke<Record<string, unknown>[]>('campaigns:list', filters),
+    listActive: () => invoke<Record<string, unknown>[]>('campaigns:listActive'),
+    getById: (id: number) => invoke<Record<string, unknown> | null>('campaigns:getById', id),
+    create: (input: import('@/types/campaign').CampaignInput) =>
+      invoke<{ id: number }>('campaigns:create', input),
+    update: (id: number, input: Partial<import('@/types/campaign').CampaignInput>) =>
+      invoke<{ id: number }>('campaigns:update', id, input),
+    activate: (id: number) => invoke<{ id: number }>('campaigns:activate', id),
+    deactivate: (id: number) => invoke<{ id: number }>('campaigns:deactivate', id),
+    calculateForSale: (input: import('@/types/campaign').CalculateSaleInput) =>
+      invoke<import('@/types/campaign').CalculateSaleResult>('campaigns:calculateForSale', input),
+    validateCode: (code: string, input: import('@/types/campaign').CalculateSaleInput) =>
+      invoke<{ valid: boolean; message?: string }>('campaigns:validateCode', code, input),
+    getReport: (filter?: import('@/types/campaign').CampaignReportFilter) =>
+      invoke<Record<string, unknown>>('campaigns:getReport', filter),
+    listSales: (filter?: import('@/types/campaign').CampaignReportFilter) =>
+      invoke<Record<string, unknown>[]>('campaigns:listSales', filter),
   },
 };
 

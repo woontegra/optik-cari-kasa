@@ -70,6 +70,7 @@ export interface SupplierPaymentInput {
   payment_date: string;
   description?: string;
   purchase_document_id?: number | null;
+  bank_account_id?: number | null;
 }
 
 export interface CancelPurchaseInput {

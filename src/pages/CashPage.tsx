@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
 import { ipc } from '@/services/ipc';
 import { formatCurrency, formatDateTime } from '@/utils/format';
 import type { CashMovementRow, CashSummary, Customer, CashPaymentType } from '@/types/electron';
 import { CASH_PAYMENT_TYPES } from '@/types/electron';
+import { PERMISSIONS } from '@/types/auth';
 import '@/components/products/ProductForm.css';
 
 function Toast({ message, onDone }: { message: string; onDone: () => void }) {
@@ -14,6 +16,8 @@ function Toast({ message, onDone }: { message: string; onDone: () => void }) {
 }
 
 export default function CashPage() {
+  const { hasPermission } = useAuth();
+  const canEdit = hasPermission(PERMISSIONS.CASH_EDIT);
   const [summary, setSummary] = useState<CashSummary | null>(null);
   const [movements, setMovements] = useState<CashMovementRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,6 +38,13 @@ export default function CashPage() {
   const [expenseDesc, setExpenseDesc] = useState('');
   const [expenseCategory, setExpenseCategory] = useState('Genel');
 
+  const [showTransfer, setShowTransfer] = useState(false);
+  const [transferDirection, setTransferDirection] = useState<'toBank' | 'fromBank'>('toBank');
+  const [transferBankId, setTransferBankId] = useState<number | ''>('');
+  const [transferAmount, setTransferAmount] = useState('');
+  const [transferDesc, setTransferDesc] = useState('');
+  const [bankAccounts, setBankAccounts] = useState<Record<string, unknown>[]>([]);
+
   const load = useCallback(() => {
     setLoading(true);
     Promise.all([ipc.cash.getSummary(), ipc.cash.listMovements()])
@@ -46,6 +57,10 @@ export default function CashPage() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    if (canEdit) ipc.banks.listAccounts().then(setBankAccounts).catch(console.error);
+  }, [canEdit]);
 
   const searchCustomer = (q: string) => {
     setIncomeCustomerSearch(q);
@@ -96,6 +111,38 @@ export default function CashPage() {
     }
   };
 
+  const handleTransfer = async () => {
+    const amount = parseFloat(transferAmount);
+    if (!transferBankId || !amount || amount <= 0) {
+      setError('Banka hesabı ve geçerli tutar girin.');
+      return;
+    }
+    setError('');
+    try {
+      if (transferDirection === 'toBank') {
+        await ipc.banks.transferCashToBank({
+          bank_account_id: transferBankId,
+          amount,
+          description: transferDesc || 'Kasadan bankaya aktarım',
+        });
+        setToast('Kasadan bankaya aktarım yapıldı.');
+      } else {
+        await ipc.banks.transferBankToCash({
+          bank_account_id: transferBankId,
+          amount,
+          description: transferDesc || 'Bankadan kasaya aktarım',
+        });
+        setToast('Bankadan kasaya aktarım yapıldı.');
+      }
+      setShowTransfer(false);
+      setTransferAmount('');
+      setTransferDesc('');
+      load();
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
   if (loading && !summary) return <div className="loading-text">Yükleniyor...</div>;
 
   return (
@@ -120,11 +167,16 @@ export default function CashPage() {
 
       <div className="panel" style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
         <div className="toolbar">
-          <button className="btn btn-primary" onClick={() => { setShowIncome(true); setShowExpense(false); }}>Manuel Tahsilat</button>
-          <button className="btn" onClick={() => { setShowExpense(true); setShowIncome(false); }}>Manuel Gider</button>
+          {canEdit && (
+            <>
+              <button className="btn btn-primary" onClick={() => { setShowIncome(true); setShowExpense(false); setShowTransfer(false); }}>Manuel Tahsilat</button>
+              <button className="btn" onClick={() => { setShowExpense(true); setShowIncome(false); setShowTransfer(false); }}>Manuel Gider</button>
+              <button className="btn" onClick={() => { setShowTransfer(true); setShowIncome(false); setShowExpense(false); }}>Kasa-Banka Aktarım</button>
+            </>
+          )}
         </div>
 
-        {(showIncome || showExpense) && (
+        {(showIncome || showExpense || showTransfer) && canEdit && (
           <div className="panel-body" style={{ borderBottom: '1px solid var(--border-color)' }}>
             {showIncome && (
               <div className="form-row">
@@ -171,6 +223,32 @@ export default function CashPage() {
                 <div className="form-group" style={{ display: 'flex', alignItems: 'flex-end', gap: 6 }}>
                   <button className="btn btn-primary" onClick={handleExpense}>Kaydet</button>
                   <button className="btn" onClick={() => setShowExpense(false)}>Vazgeç</button>
+                </div>
+              </div>
+            )}
+            {showTransfer && (
+              <div className="form-row">
+                <div className="form-group">
+                  <label>İşlem</label>
+                  <select className="form-select" value={transferDirection} onChange={(e) => setTransferDirection(e.target.value as 'toBank' | 'fromBank')}>
+                    <option value="toBank">Kasadan Bankaya Aktar</option>
+                    <option value="fromBank">Bankadan Kasaya Aktar</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Banka hesabı</label>
+                  <select className="form-select" value={transferBankId} onChange={(e) => setTransferBankId(e.target.value ? Number(e.target.value) : '')}>
+                    <option value="">Seçin</option>
+                    {bankAccounts.filter((b) => Number(b.is_active)).map((b) => (
+                      <option key={String(b.id)} value={String(b.id)}>{String(b.account_name)} — {formatCurrency(Number(b.current_balance))}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group"><label>Tutar</label><input type="number" className="form-input" value={transferAmount} onChange={(e) => setTransferAmount(e.target.value)} /></div>
+                <div className="form-group"><label>Açıklama</label><input className="form-input" value={transferDesc} onChange={(e) => setTransferDesc(e.target.value)} /></div>
+                <div className="form-group" style={{ display: 'flex', alignItems: 'flex-end', gap: 6 }}>
+                  <button className="btn btn-primary" onClick={handleTransfer}>Aktar</button>
+                  <button className="btn" onClick={() => setShowTransfer(false)}>Vazgeç</button>
                 </div>
               </div>
             )}

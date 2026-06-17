@@ -134,14 +134,73 @@ export default function DashboardPage() {
 
       <div className="stat-grid-6" style={{ marginTop: -4 }}>
         <div className="stat-box">
-          <div className="stat-label">Aktif Reçete</div>
-          <div className="stat-value">{stats.activePrescriptions}</div>
-        </div>
-        <div className="stat-box">
           <div className="stat-label">Toplam Kasa</div>
           <div className="stat-value">{formatCurrency(stats.cashTotal)}</div>
         </div>
+        {hasPermission(PERMISSIONS.FINANCE_VIEW) && (
+          <>
+            <div className="stat-box stat-box-link" onClick={() => navigate('/banka-pos')} role="button" tabIndex={0}>
+              <div className="stat-label">Banka Bakiyesi</div>
+              <div className="stat-value">{formatCurrency(stats.bankBalanceTotal ?? 0)}</div>
+            </div>
+            <div className="stat-box stat-box-link" onClick={() => navigate('/banka-pos')} role="button" tabIndex={0}>
+              <div className="stat-label">POS Bekleyen</div>
+              <div className="stat-value">{formatCurrency(stats.posPendingTotal ?? 0)}</div>
+            </div>
+            <div className="stat-box stat-box-link" onClick={() => navigate('/giderler')} role="button" tabIndex={0}>
+              <div className="stat-label">Bugünkü Gider</div>
+              <div className="stat-value amount-negative">{formatCurrency(stats.todayExpense ?? 0)}</div>
+            </div>
+            <div className="stat-box stat-box-link" onClick={() => navigate('/acik-hesaplar')} role="button" tabIndex={0}>
+              <div className="stat-label">Müşteri Açık Hesap</div>
+              <div className="stat-value amount-negative">{formatCurrency(stats.customerOpenTotal ?? 0)}</div>
+            </div>
+            <div className="stat-box stat-box-link" onClick={() => navigate('/kar-zarar')} role="button" tabIndex={0}>
+              <div className="stat-label">Bugünkü Net Kâr</div>
+              <div className={`stat-value ${(stats.todayNetProfit ?? 0) >= 0 ? 'amount-positive' : 'amount-negative'}`}>
+                {formatCurrency(stats.todayNetProfit ?? 0)}
+              </div>
+            </div>
+          </>
+        )}
+        <div className="stat-box">
+          <div className="stat-label">Aktif Reçete</div>
+          <div className="stat-value">{stats.activePrescriptions}</div>
+        </div>
+        {hasPermission(PERMISSIONS.CAMPAIGN_VIEW) && (
+          <>
+            <div className="stat-box stat-box-link" onClick={() => navigate('/kampanyalar')} role="button" tabIndex={0}>
+              <div className="stat-label">Aktif Kampanya</div>
+              <div className="stat-value">{stats.activeCampaignCount ?? 0}</div>
+            </div>
+            <div className="stat-box stat-box-link" onClick={() => navigate('/kampanyalar')} role="button" tabIndex={0}>
+              <div className="stat-label">Bugünkü Kampanya İndirimi</div>
+              <div className="stat-value amount-negative">{formatCurrency(stats.todayCampaignDiscount ?? 0)}</div>
+            </div>
+          </>
+        )}
       </div>
+
+      {hasPermission(PERMISSIONS.CUSTOMERS_VIEW) && (
+        <div className="stat-grid-6" style={{ marginBottom: 8 }}>
+          <div className="stat-box stat-box-link" onClick={() => navigate('/randevular')} role="button" tabIndex={0}>
+            <div className="stat-label">Bugünkü Randevu</div>
+            <div className="stat-value">{stats.todayAppointments ?? 0}</div>
+          </div>
+          <div className="stat-box stat-box-link" onClick={() => navigate('/musteri')} role="button" tabIndex={0}>
+            <div className="stat-label">Yaklaşan Kontrol</div>
+            <div className="stat-value">{stats.upcomingControls ?? 0}</div>
+          </div>
+          <div className="stat-box stat-box-link" onClick={() => navigate('/musteri')} role="button" tabIndex={0}>
+            <div className="stat-label">Borçlu Müşteri</div>
+            <div className="stat-value amount-negative">{stats.debtorsCount ?? 0}</div>
+          </div>
+          <div className="stat-box stat-box-link" onClick={() => navigate('/musteri')} role="button" tabIndex={0}>
+            <div className="stat-label">Lens Yenileme Yaklaşan</div>
+            <div className="stat-value">{stats.lensRenewalSoon ?? 0}</div>
+          </div>
+        </div>
+      )}
 
       <div className="dashboard-tables" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, flex: 1, minHeight: 220 }}>
         <div className="panel" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>

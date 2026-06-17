@@ -46,8 +46,10 @@ export const MENU_GROUPS: MenuGroupDef[] = [
     items: [
       { path: '/satis', label: 'Barkodlu Satış', icon: '⊞', permission: PERMISSIONS.SALES_CREATE },
       { path: '/satislar', label: 'Satışlar', icon: '⊡', permission: PERMISSIONS.SALES_CREATE },
+      { path: '/kampanyalar', label: 'Kampanyalar', icon: '％', permission: PERMISSIONS.CAMPAIGN_VIEW },
       { path: '/iade', label: 'İade / Değişim', icon: '↩', permission: PERMISSIONS.RETURNS_CREATE },
       { path: '/musteri', label: 'Müşteri / Hasta', icon: '☺', permission: PERMISSIONS.CUSTOMERS_VIEW },
+      { path: '/randevular', label: 'Randevular', icon: '◷', permission: PERMISSIONS.APPOINTMENTS_VIEW },
       { path: '/recete', label: 'Reçete Kayıtları', icon: '◎', permission: PERMISSIONS.PRESCRIPTIONS_VIEW },
     ],
   },
@@ -57,16 +59,14 @@ export const MENU_GROUPS: MenuGroupDef[] = [
     icon: '₺',
     items: [
       { path: '/kasa', label: 'Kasa / Tahsilat', icon: '₺', permission: PERMISSIONS.CASH_VIEW },
+      { path: '/banka-pos', label: 'Banka / POS', icon: '⊞', permission: PERMISSIONS.FINANCE_VIEW },
+      { path: '/giderler', label: 'Giderler', icon: '↦', permission: PERMISSIONS.FINANCE_VIEW },
       { path: '/tedarikciler', label: 'Tedarikçiler', icon: '⊟', permission: PERMISSIONS.SUPPLIERS_VIEW },
       { path: '/tedarikciler', label: 'Tedarikçi Cari', icon: '⊡', permission: PERMISSIONS.SUPPLIERS_VIEW, search: '?tab=account' },
       { path: '/tedarikciler', label: 'Tedarikçi Ödemeleri', icon: '↦', permission: PERMISSIONS.SUPPLIER_PAYMENTS, search: '?tab=payments' },
-      {
-        path: '/raporlar',
-        label: 'Açık Hesaplar',
-        icon: '⊟',
-        permission: PERMISSIONS.REPORTS_VIEW,
-        search: '?tab=customerAccount&balance=debt',
-      },
+      { path: '/acik-hesaplar', label: 'Açık Hesaplar', icon: '⊟', permission: PERMISSIONS.FINANCE_VIEW },
+      { path: '/ekstreler', label: 'Ekstreler', icon: '▦', permission: PERMISSIONS.FINANCE_VIEW },
+      { path: '/kar-zarar', label: 'Kâr-Zarar', icon: '▤', permission: PERMISSIONS.FINANCE_VIEW },
     ],
   },
   {
@@ -207,6 +207,7 @@ export const DASHBOARD_MODULES: DashboardModuleDef[] = [
     description: 'Hasta kartları, reçete kayıtları ve müşteri geçmişi.',
     quickLinks: [
       { label: 'Müşteri / Hasta', path: '/musteri', permission: PERMISSIONS.CUSTOMERS_VIEW },
+      { label: 'Randevular', path: '/randevular', permission: PERMISSIONS.APPOINTMENTS_VIEW },
       { label: 'Reçete Kayıtları', path: '/recete', permission: PERMISSIONS.PRESCRIPTIONS_VIEW },
     ],
   },
@@ -217,8 +218,10 @@ export const DASHBOARD_MODULES: DashboardModuleDef[] = [
     description: 'Kasa, tahsilat, tedarikçi cari ve ödeme işlemleri.',
     quickLinks: [
       { label: 'Kasa / Tahsilat', path: '/kasa', permission: PERMISSIONS.CASH_VIEW },
+      { label: 'Banka / POS', path: '/banka-pos', permission: PERMISSIONS.FINANCE_VIEW },
+      { label: 'Giderler', path: '/giderler', permission: PERMISSIONS.FINANCE_VIEW },
       { label: 'Tedarikçiler', path: '/tedarikciler', permission: PERMISSIONS.SUPPLIERS_VIEW },
-      { label: 'Tedarikçi Ödemeleri', path: '/tedarikciler', search: '?tab=payments', permission: PERMISSIONS.SUPPLIER_PAYMENTS },
+      { label: 'Kâr-Zarar', path: '/kar-zarar', permission: PERMISSIONS.FINANCE_VIEW },
     ],
   },
   {

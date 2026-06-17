@@ -22,6 +22,13 @@ import BackupPage from '@/pages/BackupPage';
 import ReportsPage from '@/pages/ReportsPage';
 import UsersPage from '@/pages/UsersPage';
 import OptikTanimlarPage from '@/pages/OptikTanimlarPage';
+import BankPosPage from '@/pages/BankPosPage';
+import ExpensesPage from '@/pages/ExpensesPage';
+import OpenAccountsPage from '@/pages/OpenAccountsPage';
+import StatementsPage from '@/pages/StatementsPage';
+import ProfitLossPage from '@/pages/ProfitLossPage';
+import CampaignsPage from '@/pages/CampaignsPage';
+import AppointmentsPage from '@/pages/AppointmentsPage';
 import SettingsPage from '@/pages/SettingsPage';
 import ChangePasswordModal from '@/components/auth/ChangePasswordModal';
 
@@ -66,12 +73,19 @@ export default function AppRoutes() {
             <Route path="stok-sayim" element={<ProtectedRoute><InventoryCountPage /></ProtectedRoute>} />
             <Route path="tedarikciler" element={<ProtectedRoute><SuppliersPage /></ProtectedRoute>} />
             <Route path="musteri" element={<ProtectedRoute><CustomerPage /></ProtectedRoute>} />
+            <Route path="randevular" element={<ProtectedRoute><AppointmentsPage /></ProtectedRoute>} />
             <Route path="recete" element={<ProtectedRoute><PrescriptionPage /></ProtectedRoute>} />
             <Route path="satislar" element={<ProtectedRoute><SalesListPage /></ProtectedRoute>} />
             <Route path="iade" element={<ProtectedRoute><ReturnPage /></ProtectedRoute>} />
             <Route path="medula" element={<ProtectedRoute><MedulaUtsPage /></ProtectedRoute>} />
             <Route path="satis" element={<ProtectedRoute><SalePage /></ProtectedRoute>} />
             <Route path="kasa" element={<ProtectedRoute><CashPage /></ProtectedRoute>} />
+            <Route path="banka-pos" element={<ProtectedRoute><BankPosPage /></ProtectedRoute>} />
+            <Route path="giderler" element={<ProtectedRoute><ExpensesPage /></ProtectedRoute>} />
+            <Route path="acik-hesaplar" element={<ProtectedRoute><OpenAccountsPage /></ProtectedRoute>} />
+            <Route path="ekstreler" element={<ProtectedRoute><StatementsPage /></ProtectedRoute>} />
+            <Route path="kar-zarar" element={<ProtectedRoute><ProfitLossPage /></ProtectedRoute>} />
+            <Route path="kampanyalar" element={<ProtectedRoute><CampaignsPage /></ProtectedRoute>} />
             <Route path="raporlar" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
             <Route path="yedekleme" element={<ProtectedRoute><BackupPage /></ProtectedRoute>} />
             <Route path="kullanicilar" element={<ProtectedRoute><UsersPage /></ProtectedRoute>} />

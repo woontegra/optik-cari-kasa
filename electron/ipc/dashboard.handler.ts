@@ -1,6 +1,11 @@
 import type { IpcMain } from 'electron';
 import type Database from 'better-sqlite3';
 import { getDatabase } from '../database';
+import { BankService } from '../services/bank.service';
+import { PosService } from '../services/pos.service';
+import { ProfitLossService } from '../services/profitLoss.service';
+import { AppointmentService } from '../services/appointment.service';
+import { CustomerService } from '../services/customer.service';
 import { UtsTrackingService } from '../services/utsTracking.service';
 import { TitubbExportService } from '../services/titubbExport.service';
 import { requirePermission } from './authGuard';
@@ -113,11 +118,65 @@ export function registerDashboardHandlers(ipcMain: IpcMain): void {
         .prepare(`SELECT COALESCE(SUM(balance), 0) as total FROM suppliers WHERE is_active = 1 AND balance > 0`)
         .get() as { total: number };
 
+      const bankBalanceTotal = new BankService(db()).getTotalBalance();
+      const posPendingTotal = new PosService(db()).getPendingTotal();
+
+      const todayExpense = db()
+        .prepare(
+          `SELECT COALESCE(SUM(amount), 0) as total FROM expenses
+           WHERE date(expense_date) = date('now', 'localtime') AND status = 'Aktif'`
+        )
+        .get() as { total: number };
+
+      const customerOpenTotal = db()
+        .prepare(
+          `SELECT COALESCE(SUM(balance), 0) as total FROM customers WHERE is_active = 1 AND balance > 0`
+        )
+        .get() as { total: number };
+
+      const today = new Date().toISOString().slice(0, 10);
+      const todayProfitLoss = new ProfitLossService(db()).getSummary({
+        date_from: today,
+        date_to: today,
+      });
+
+      const activeCampaignCount = db()
+        .prepare(
+          `SELECT COUNT(*) as count FROM campaigns
+           WHERE status = 'Aktif' AND date(start_date) <= date('now', 'localtime') AND date(end_date) >= date('now', 'localtime')`
+        )
+        .get() as { count: number };
+
+      const todayCampaignDiscount = db()
+        .prepare(
+          `SELECT COALESCE(SUM(campaign_discount_amount), 0) as total FROM sales
+           WHERE date(sale_date) = date('now', 'localtime') AND status != 'İptal edildi'`
+        )
+        .get() as { total: number };
+
+      const appointmentService = new AppointmentService(db());
+      const customerService = new CustomerService(db());
+      const todayAppointments = appointmentService.countToday();
+      const upcomingControls = appointmentService.countUpcomingControls();
+      const debtorsCount = customerService.countDebtors();
+      const lensRenewalSoon = appointmentService.countLensRenewalSoon();
+
       return success({
         todaySales: todaySales.total,
         todayCollection: todayCollection.total,
         openAccountTotal: openAccountTotal.total,
         cashTotal: cashTotal.total,
+        bankBalanceTotal,
+        posPendingTotal,
+        todayExpense: todayExpense.total,
+        customerOpenTotal: customerOpenTotal.total,
+        todayNetProfit: todayProfitLoss.netProfit as number,
+        activeCampaignCount: activeCampaignCount.count,
+        todayCampaignDiscount: todayCampaignDiscount.total,
+        todayAppointments,
+        upcomingControls,
+        debtorsCount,
+        lensRenewalSoon,
         criticalStock: criticalStock.count,
         activePrescriptions: activePrescriptions.count,
         todayReturns: todayReturns.total,

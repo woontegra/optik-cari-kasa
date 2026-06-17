@@ -32,6 +32,15 @@ export const PERMISSIONS = {
   SUPPLIERS_VIEW: 'suppliers.view',
   SUPPLIERS_EDIT: 'suppliers.edit',
   SUPPLIER_PAYMENTS: 'suppliers.payments',
+  FINANCE_VIEW: 'finance.view',
+  FINANCE_EDIT: 'finance.edit',
+  CAMPAIGN_VIEW: 'campaigns.view',
+  CAMPAIGN_EDIT: 'campaigns.edit',
+  MANUAL_DISCOUNT: 'sales.manual_discount',
+  APPOINTMENTS_VIEW: 'appointments.view',
+  APPOINTMENTS_EDIT: 'appointments.edit',
+  COMMUNICATIONS_VIEW: 'communications.view',
+  COMMUNICATIONS_EDIT: 'communications.edit',
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -60,6 +69,15 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
   'suppliers.view': 'Tedarikçi görüntüleme',
   'suppliers.edit': 'Tedarikçi ve alış belgesi düzenleme',
   'suppliers.payments': 'Tedarikçi ödemesi yapma',
+  'finance.view': 'Finans görüntüleme',
+  'finance.edit': 'Finans işlemleri',
+  'campaigns.view': 'Kampanya görüntüleme',
+  'campaigns.edit': 'Kampanya oluşturma/düzenleme',
+  'sales.manual_discount': 'Manuel indirim uygulama',
+  'appointments.view': 'Randevu görüntüleme',
+  'appointments.edit': 'Randevu oluşturma/düzenleme',
+  'communications.view': 'İletişim geçmişi görüntüleme',
+  'communications.edit': 'Mesaj hazırlama',
 };
 
 export const ALL_PERMISSIONS: Permission[] = Object.values(PERMISSIONS);
@@ -68,21 +86,30 @@ const SALES_STAFF: Permission[] = [
   PERMISSIONS.DASHBOARD_VIEW,
   PERMISSIONS.STOCK_VIEW,
   PERMISSIONS.SALES_CREATE,
+  PERMISSIONS.MANUAL_DISCOUNT,
   PERMISSIONS.RETURNS_CREATE,
   PERMISSIONS.CUSTOMERS_VIEW,
   PERMISSIONS.CUSTOMERS_EDIT,
   PERMISSIONS.PRESCRIPTIONS_VIEW,
   PERMISSIONS.PRESCRIPTIONS_EDIT,
   PERMISSIONS.MEDULA_VIEW,
+  PERMISSIONS.CAMPAIGN_VIEW,
+  PERMISSIONS.APPOINTMENTS_VIEW,
+  PERMISSIONS.APPOINTMENTS_EDIT,
+  PERMISSIONS.COMMUNICATIONS_VIEW,
+  PERMISSIONS.COMMUNICATIONS_EDIT,
 ];
 
 const CASH_STAFF: Permission[] = [
   PERMISSIONS.DASHBOARD_VIEW,
   PERMISSIONS.CASH_VIEW,
   PERMISSIONS.CASH_EDIT,
+  PERMISSIONS.FINANCE_VIEW,
+  PERMISSIONS.FINANCE_EDIT,
   PERMISSIONS.CUSTOMERS_VIEW,
   PERMISSIONS.SUPPLIERS_VIEW,
   PERMISSIONS.SUPPLIER_PAYMENTS,
+  PERMISSIONS.CAMPAIGN_VIEW,
 ];
 
 const STOCK_STAFF: Permission[] = [
@@ -99,8 +126,11 @@ const REPORT_USER: Permission[] = [
   PERMISSIONS.DASHBOARD_VIEW,
   PERMISSIONS.REPORTS_VIEW,
   PERMISSIONS.EXCEL_EXPORT,
+  PERMISSIONS.FINANCE_VIEW,
+  PERMISSIONS.CAMPAIGN_VIEW,
   PERMISSIONS.STOCK_VIEW,
   PERMISSIONS.CUSTOMERS_VIEW,
+  PERMISSIONS.APPOINTMENTS_VIEW,
   PERMISSIONS.MEDULA_VIEW,
 ];
 
